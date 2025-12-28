@@ -108,6 +108,9 @@ export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onCon
         save.player.description = settings.playerDescription;
         save.aide.name = settings.aideName;
         save.aide.description = settings.aideDescription;
+        save.directorModule = save.directorModule || {};
+        save.directorModule.name = settings.directorModuleName;
+        save.directorModule.roleName = settings.directorModuleRoleName;
 
         save.bannedTags = Object.keys(settings.tagToggles).filter(key => !settings.tagToggles[key]).map(key => tagMap[key] ? tagMap[key] : [key]).flat();
         save.disableTextToSpeech = settings.disableTextToSpeech;
