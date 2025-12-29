@@ -521,9 +521,9 @@ export async function generateActorDecor(actor: Actor, module: Module, stage: St
     // Generate a decor image based on the module's description and the actor's description
     stage.imageGenerationPromises[`actor/decor/${actor.id}/${module.type}`] = stage.makeImageFromImage({
         image: module.getAttribute('baseImageUrl') || '',
-        prompt: `This is a sci-fi room (${module.getAttribute('name')}) aboard a space station.\n` +
-                `Redecorate this space with furnishings, decorations, or details to suit or exemplify their personal aesthetic: ${actor.style}.\n` +
-                `Remove any characters from the scene, and give the result a visual novel look.`,
+        prompt: `Redecorate this sci-fi room (${module.getAttribute('name')}) aboard a space station.\n` +
+                `Update the room with furnishings, decorations, or details to match or exemplify this personal aesthetic: ${actor.style}.\n` +
+                `Remove any and all characters from the resulting scene.`,
         remove_background: false,
         transfer_type: 'edit'
     }, module.getAttribute('baseImageUrl') || '');

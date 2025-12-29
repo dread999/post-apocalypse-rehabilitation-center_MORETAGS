@@ -281,7 +281,7 @@ export const MenuScreen: FC<MenuScreenProps> = ({ stage, setScreenType }) => {
                         fontSize: 'clamp(10px, 1.5vw, 12px)',
                     }}
                 >
-                    v2025.12.28 - Prompt updates and beta features.
+                    v2025.12.28 - Customizable Director Module.
                 </motion.div>
             </motion.div>
             </div>

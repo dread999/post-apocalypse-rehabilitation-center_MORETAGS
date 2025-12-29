@@ -383,8 +383,7 @@ export async function generateSkitScript(skit: SkitData, wrapUp: boolean, stage:
         `\n\nCritical Instruction: This scene is running long and needs a summary. Finish the immediate beat and include a "[SUMMARY]" tag.` // Firmer prod
     ];
 
-    const scriptLengthFactor = skit.script.length > 0 ? (skit.script.length + Math.floor(Math.random() * 8) + 1) : 0;
-    const wrapupPrompt = wrapUp ? wrapUpPhrases[1] : (scriptLengthFactor > 30 ? wrapUpPhrases[0] : '');
+    const wrapupPrompt = wrapUp ? wrapUpPhrases[1] : (skit.script.length > 30 ? wrapUpPhrases[0] : '');
 
 
     // Retry logic if response is null or response.result is empty
@@ -428,12 +427,12 @@ export async function generateSkitScript(skit: SkitData, wrapUp: boolean, stage:
                 `Absent characters cannot speak or take actions until they have moved into the scene using a [CHARACTER NAME moves to HERE] tag. ` +
                 `The scene itself cannot transition to a new area. The tags are not presented to users, so the content of the script should reflect any included tags and vice-versa. ` +
                 (skit.script.length > 0 ? (`If a scene transition is desired, the current scene must first be summarized. ` +
-                    `A "[SUMMARY]" tag (e.g., "[SUMMARY: A paragraph summarizing the scene's events with key details and impacts.]") should be included when the scene has reached a conclusive moment. `) : '') +
+                    `A "[SUMMARY]" tag (e.g., "[SUMMARY: A paragraph summarizing the scene's events with key details and impacts.]") should be included when the scene reaches a conclusive moment. `) : '') +
                 `\nThis scene is a brief visual novel skit within a video game; as such, the scene avoids major developments which would fundamentally alter the mechanics or nature of the game, ` +
                 `instead developing content within the existing rules. ` +
                 `As a result, avoid timelines, using vague durations for upcoming events; the game's mechanics may by unable to map directly to what is depicted in the skit, so ambiguity is preferred. ` +
                 `Generally, focus upon interpersonal dynamics, character growth, faction and patient relationships, and the state of the Station, its capabilities, and its inhabitants.` +
-                (skit.script.length > 0 ? (`\nWhen the script naturally concludes, indicates a scene change, or includes an implied closure, ` +
+                (skit.script.length > 0 ? (`\nIf the script reaches a conclusion, indicates a scene change, or hits an implied closure, ` +
                 `remember to insert a "[SUMMARY: A paragraph summarizing this scene's key events or impacts.]" tag, so the game engine can store the summary.${wrapupPrompt}`) : '')
             );
 

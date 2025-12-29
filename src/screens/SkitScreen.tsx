@@ -288,7 +288,7 @@ const getActorsAtIndex = (skit: SkitData, scriptIndex: number, allActors: {[key:
  * Actors alternate between left and right sides of the screen, with positions distributed
  * within ranges centered at 25vw (left) and 75vw (right).
  */
-const calculateActorXPosition = (actorIndex: number, totalActors: number): number => {
+const calculateActorXPosition = (actorIndex: number, totalActors: number, anySpeaker: boolean): number => {
     const leftRange = Math.min(40, Math.ceil((totalActors - 2) / 2) * 20); // Adjust used screen space by number of present actors.
     const rightRange = Math.min(40, Math.floor((totalActors - 2) / 2) * 20);
     const leftSide = (actorIndex % 2) === 0;
@@ -296,7 +296,7 @@ const calculateActorXPosition = (actorIndex: number, totalActors: number): numbe
     const actorsOnSide = leftSide ? Math.ceil(totalActors / 2) : Math.floor(totalActors / 2);
     const range = leftSide ? leftRange : rightRange;
     const increment = actorsOnSide > 1 ? (indexOnSide / (actorsOnSide - 1)) : 0.5;
-    const center = leftSide ? 25 : 75;
+    const center = leftSide ? (anySpeaker ? 25 : 30) : (anySpeaker ? 75 : 70);
     const xPosition = totalActors === 1 ? 50 : Math.round(increment * range) + (center - Math.floor(range / 2));
     
     return xPosition;
@@ -371,7 +371,7 @@ export const SkitScreen: FC<SkitScreenProps> = ({ stage, setScreenType, isVertic
         // Calculate actor positions using shared logic
         const actorPositions = actors.map((actor, i) => ({
             actor,
-            xPosition: calculateActorXPosition(i, actors.length)
+            xPosition: calculateActorXPosition(i, actors.length, speaker !== null)
         }));
 
         // Find closest actor within 10vw range
@@ -541,7 +541,7 @@ export const SkitScreen: FC<SkitScreenProps> = ({ stage, setScreenType, isVertic
                 }
             }
             
-            const xPosition = calculateActorXPosition(i, actors.length);
+            const xPosition = calculateActorXPosition(i, actors.length, speaker !== null);
             const isSpeaking = actor === speaker;
             const isHovered = hoveredActor === actor;
             
@@ -678,7 +678,7 @@ export const SkitScreen: FC<SkitScreenProps> = ({ stage, setScreenType, isVertic
                                 </span>
                             }
                             sx={{ 
-                                minWidth: isVerticalLayout ? 55 : 80,
+                                minWidth: isVerticalLayout ? 50 : 72,
                                 height: isVerticalLayout ? '24px' : undefined,
                                 fontSize: isVerticalLayout ? '0.7rem' : undefined,
                                 fontWeight: 700, 
@@ -919,7 +919,7 @@ export const SkitScreen: FC<SkitScreenProps> = ({ stage, setScreenType, isVertic
                                     : 'rgba(255,255,255,0.04)',
                             color: sceneEnded ? '#fff' : '#00221a',
                             fontWeight: 800,
-                            minWidth: isVerticalLayout ? 70 : 100,
+                            minWidth: isVerticalLayout ? 76 : 100,
                             fontSize: isVerticalLayout ? 'clamp(0.6rem, 2vw, 0.875rem)' : undefined,
                             padding: isVerticalLayout ? '4px 10px' : undefined,
                             '&:hover': {

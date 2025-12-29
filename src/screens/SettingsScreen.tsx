@@ -329,7 +329,7 @@ export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onCon
                             )}
                             
                             {/* Director's Module Name */}
-                            {stage().betaMode && isNewGame && (
+                            {isNewGame && (
                                 <div>
                                     <label 
                                         htmlFor="director-module-name"
@@ -354,7 +354,7 @@ export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onCon
                                 </div>
                             )}
                             {/* Director's Module Job Title */}
-                            {stage().betaMode && isNewGame && (
+                            {isNewGame && (
                                 <div>
                                     <label 
                                         htmlFor="director-room-role-name"
