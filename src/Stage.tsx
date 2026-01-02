@@ -171,10 +171,10 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
         this.currentSave = this.saves[this.saveSlot] || this.getFreshSave();
 
         if (this.betaMode) {
-            this.mcp.registerTool('stationStatChange',
+            this.mcp.registerTool('modifyStationStat',
                 {
                     title: 'Modify a Station Stat',
-                    description: 'Register a station stat change.',
+                    description: 'If events result in a change to a station stat, use this tool to register a station stat change.',
                     inputSchema: {
                         stat: z.enum(Object.values(StationStat) as [string, ...string[]]),
                         change: z.number().min(-10).max(10),
@@ -184,15 +184,15 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                     // Eventually, we will attach this to some sort of resolution content for the current skit, to be displayed in SkitScreen before the "Close" button becomes available, and executed when the skit ends.
                     // this.getSave().currentSkit ...
                     // For now, we're just testing that it works.
-                    console.log(`Tool called: stationStatChange(${stat}, ${change})`);
+                    console.log(`Tool called: modifyStationStat(${stat}, ${change})`);
                     return { content: [{type: 'text', text: `Station stat ${stat} changed by ${change}.` }] };
                 }
             );
 
-            this.mcp.registerTool('actorStatChange',
+            this.mcp.registerTool('modifyActorStat',
                 {
                     title: 'Modify an Actor Stat',
-                    description: 'Register an actor stat change.',
+                    description: 'If events result in a change to an actor (character) stat, use this tool to register an actor stat change.',
                     inputSchema: {
                         actor: z.string().min(1),
                         stat: z.enum(Object.values(Stat) as [string, ...string[]]),
@@ -203,7 +203,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                     // Eventually, we will attach this to some sort of resolution content for the current skit, to be displayed in SkitScreen before the "Close" button becomes available, and executed when the skit ends.
                     // this.getSave().currentSkit ...
                     // For now, we're just testing that it works.
-                    console.log(`Tool called: actorStatChange(${actor}, ${stat}, ${change})`);
+                    console.log(`Tool called: modifyActorStat(${actor}, ${stat}, ${change})`);
                     return { content: [{type: 'text', text: `Actor ${actor}'s stat ${stat} changed by ${change}.` }] };
                 }
             );

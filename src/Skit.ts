@@ -747,7 +747,7 @@ export async function generateSkitScript(skit: SkitData, wrapUp: boolean, stage:
                             `If the scene presents no appreciable change, or all relevant tags have been presented, the response may be ended early with [END]. \n\n`
                         );
                         const requestAnalysis = await stage.generator.textGen({
-                            prompt: analysisPrompt,
+                            prompt: analysisPrompt + (stage.betaMode ? 'Make MCP tool calls for appropriate stat changes: modifyStationStat and modifyActorStat.\n\n' : ''),
                             min_tokens: 50,
                             max_tokens: summary ? 300 : 500,
                             include_history: true,
