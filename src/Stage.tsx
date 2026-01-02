@@ -537,13 +537,6 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
             save.factions = {};
         }
 
-        save.layout.getModulesWhere(m => true).forEach(module => {
-            if (!Object.keys(MODULE_TEMPLATES).includes(module.type)) {
-                console.log(`Removing unknown module type ${module.getAttribute('name')} from layout.`);
-                save.layout.removeModule(module);
-            }
-        });
-
         // Clean out remote actors that aren't supported by current factions
         const idsToRemove: string[] = [];
         Object.values(save.actors).filter(actor => actor.factionId && (!save.factions || !Object.values(save.factions).some(faction => faction.id === actor.factionId))).forEach(actor => {
@@ -570,6 +563,13 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                     console.log(`Repairing factionId for representative ${repActor.name} of faction ${faction.name}`);
                     repActor.factionId = faction.id;
                 }
+            }
+        });
+
+        save.layout.getModulesWhere(m => true).forEach(module => {
+            if (!Object.keys(MODULE_TEMPLATES).includes(module.type)) {
+                console.log(`Removing unknown module type ${module.getAttribute('name')} from layout.`);
+                save.layout.removeModule(module);
             }
         });
 

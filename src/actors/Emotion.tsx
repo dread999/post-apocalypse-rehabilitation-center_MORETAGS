@@ -29,7 +29,7 @@ export const EMOTION_SYNONYMS: {[key in Emotion]: string[]} = {
     desire: ['seductive', 'sexy', 'desirous', 'longing', 'lust', 'yearning', 'passion', 'passionate'],
     disappointment: ['annoyed', 'disapproval', 'dismayed', 'suspicious', 'suspicion', 'distrust', 'resentment', 'defensiveness', 'mockery', 'mocking', 'skepticism'],
     disgust: ['disgusted', 'grossed_out', 'sickened', 'grossed out', 'sick', 'revulsion', 'disdain', 'contempt', 'rivulsion'],
-    embarrassment: ['embarrassed', 'shame', 'ashamed', 'sheepish', 'chagrin', 'mortification', 'abashment', 'selfconsciousness', 'self-consciousness', 'bashfulness', 'bashful', 'flustered', 'fluster', 'awkwardness', 'awkward'],
+    embarrassment: ['embarrassed', 'shame', 'ashamed', 'sheepish', 'chagrin', 'mortification', 'abashment', 'selfconsciousness', 'self-consciousness', 'shy', 'shyness', 'bashfulness', 'bashful', 'flustered', 'fluster', 'awkwardness', 'awkward'],
     ecstasy: ['ecstasy', 'ecstatic', 'orgasm', 'orgasmic', 'finishing', 'coming', 'euphoria', 'euphoric', 'mania', 'manic'],
     fear: ['shocked', 'terrified', 'terror', 'panic', 'alarm', 'alarmed', 'frightened', 'horror', 'horrified'],
     grief: ['sad', 'upset', 'depressed', 'depression', 'sobbing', 'desperation', 'sorrow', 'despair'],
