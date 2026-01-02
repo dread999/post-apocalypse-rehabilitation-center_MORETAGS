@@ -751,7 +751,8 @@ export async function generateSkitScript(skit: SkitData, wrapUp: boolean, stage:
                             min_tokens: 50,
                             max_tokens: summary ? 300 : 500,
                             include_history: true,
-                            stop: ['[END]']
+                            stop: ['[END]'],
+                            
                         });
                         console.log('Request analysis response:', requestAnalysis?.result);
                         if (requestAnalysis && requestAnalysis.result) {
