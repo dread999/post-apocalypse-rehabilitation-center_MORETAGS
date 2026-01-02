@@ -335,7 +335,7 @@ export function generateSkitPrompt(skit: SkitData, stage: Stage, historyLength: 
                 `${module.getAttribute('name')} (Role: ${module.getAttribute('role') || 'None'})`).join(', ')
         ) +
         `\n\n${playerName}'s profile: ${save.player.description}` +
-        (stationAide ? (presentActorIds.has(stationAide.id) ? `\n\nThe holographic StationAide™ ${stationAide.name} is active in the scene. Profile: ${stationAide.profile}` : '\n\nThe holographic StationAide™ ${stationAide.name} remains absent from the scene unless summoned by the Director.') : '') +
+        (stationAide ? (presentActorIds.has(stationAide.id) ? `\n\nThe holographic StationAide™ ${stationAide.name} is active in the scene. Profile: ${stationAide.profile}` : `\n\nThe holographic StationAide™ ${stationAide.name} remains absent from the scene unless summoned by the Director.`) : '') +
         // List characters who are here, along with full stat details:
         `\n\nPresent Characters (Currently in the Scene):\n${presentPatients.map(actor => {
             const roleModule = stage.getLayout().getModulesWhere((m: any) => 
@@ -747,7 +747,7 @@ export async function generateSkitScript(skit: SkitData, wrapUp: boolean, stage:
                             `If the scene presents no appreciable change, or all relevant tags have been presented, the response may be ended early with [END]. \n\n`
                         );
                         const requestAnalysis = await stage.generator.textGen({
-                            prompt: analysisPrompt + (stage.betaMode ? 'Make MCP tool calls for appropriate stat changes: modifyStationStat and modifyActorStat.\n\n' : ''),
+                            prompt: analysisPrompt + (stage.betaMode ? '%%%TOOLS%%%\n\nMake tool calls for appropriate stat changes.\n\n' : ''),
                             min_tokens: 50,
                             max_tokens: summary ? 300 : 500,
                             include_history: true,
