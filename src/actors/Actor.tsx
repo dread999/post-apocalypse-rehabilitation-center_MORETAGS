@@ -493,7 +493,7 @@ export async function generateEmotionImage(actor: Actor, emotion: Emotion, stage
         console.log(`Generating ${emotion} emotion image for actor ${actor.name}`);
         stage.imageGenerationPromises[`actor/${actor.id}`] = stage.makeImageFromImage({
             image: actor.emotionPack['base'] || '',
-            prompt: `Give this character a ${EMOTION_PROMPTS[emotion]}, gesture, or pose.`,
+            prompt: `Give this character a clearly ${EMOTION_PROMPTS[emotion]}, gesture, or pose, while maintaining their core appearance: ${actor.description}.`,
             remove_background: true,
             transfer_type: 'edit'
         }, '');
@@ -521,9 +521,9 @@ export async function generateActorDecor(actor: Actor, module: Module, stage: St
     // Generate a decor image based on the module's description and the actor's description
     stage.imageGenerationPromises[`actor/decor/${actor.id}/${module.type}`] = stage.makeImageFromImage({
         image: module.getAttribute('baseImageUrl') || '',
-        prompt: `Redecorate this sci-fi room (${module.getAttribute('name')}) aboard a space station.\n` +
+        prompt: `Redecorate this sci-fi room aboard a space station: ${module.getAttribute('name')}.\n` +
                 `Update the room with suitable furnishings, decorations, or details to match this aesthetic: ${actor.style}.\n` +
-                `This image will be used as an unoccupied backdrop; remove any and all people from the scene.`,
+                `Keep the scene unoccupied; remove any people from the result.`,
         remove_background: false,
         transfer_type: 'edit'
     }, module.getAttribute('baseImageUrl') || '');
