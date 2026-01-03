@@ -749,7 +749,7 @@ export async function generateSkitScript(skit: SkitData, wrapUp: boolean, stage:
                         const requestAnalysis = await stage.generator.textGen({
                             prompt: analysisPrompt + (stage.betaMode ? '%%%TOOLS%%%\n\nMake tool calls for appropriate stat changes.\n\n' : ''),
                             min_tokens: 50,
-                            max_tokens: summary ? 300 : 500,
+                            max_tokens: stage.betaMode ? 1500 : (summary ? 300 : 500),
                             include_history: true,
                             stop: ['[END]'],
                             

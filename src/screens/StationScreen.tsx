@@ -761,14 +761,14 @@ export const StationScreen: FC<StationScreenProps> = ({stage, setScreenType, isV
                                             right: `calc(${cellSize} * 0.08)`,
                                             background: 'rgba(0, 0, 0, 0.7)',
                                             borderRadius: '50%',
-                                            padding: `calc(${cellSize} * 0.08)`,
+                                            padding: `calc(${cellSize} * 0.05)`,
                                             display: 'flex',
                                             alignItems: 'center',
                                             justifyContent: 'center',
                                             zIndex: 10,
                                             border: `calc(${cellSize} * 0.02) solid rgba(255, 200, 0, 0.8)`,
                                         }}>
-                                            <Home style={{ color: '#ffc800', fontSize: `calc(${cellSize} * 0.24)` }} />
+                                            <Home style={{ color: '#ffc800', fontSize: `calc(${cellSize} * 0.12)` }} />
                                         </div>
                                     )}
                                     {isWork && !draggedModule && (
@@ -778,14 +778,14 @@ export const StationScreen: FC<StationScreenProps> = ({stage, setScreenType, isV
                                             right: `calc(${cellSize} * 0.08)`,
                                             background: 'rgba(0, 0, 0, 0.7)',
                                             borderRadius: '50%',
-                                            padding: `calc(${cellSize} * 0.08)`,
+                                            padding: `calc(${cellSize} * 0.05)`,
                                             display: 'flex',
                                             alignItems: 'center',
                                             justifyContent: 'center',
                                             zIndex: 10,
                                             border: `calc(${cellSize} * 0.02) solid rgba(255, 200, 0, 0.8)`,
                                         }}>
-                                            <Work style={{ color: '#ffc800', fontSize: `calc(${cellSize} * 0.24)` }} />
+                                            <Work style={{ color: '#ffc800', fontSize: `calc(${cellSize} * 0.12)` }} />
                                         </div>
                                     )}
                                     {/* Compute actors once for this module */}
