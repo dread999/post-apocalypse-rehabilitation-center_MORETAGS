@@ -772,7 +772,7 @@ export const SkitScreen: FC<SkitScreenProps> = ({ stage, setScreenType, isVertic
                             onMouseLeave={() => {
                                 clearTooltip();
                             }}
-                            disabled={loading || sceneEnded}
+                            disabled={loading}
                             size="small"
                             sx={{
                                 color: '#00ff88',
@@ -907,27 +907,23 @@ export const SkitScreen: FC<SkitScreenProps> = ({ stage, setScreenType, isVertic
                         }}
                     />
                     <Button
-                        onClick={() => { if (sceneEnded) handleClose(); else handleSubmit(); }}
+                        onClick={() => { if (sceneEnded && !inputText.trim()) handleClose(); else handleSubmit(); }}
                         disabled={loading}
                         variant="contained"
-                        startIcon={sceneEnded ? <Close fontSize={isVerticalLayout ? 'small' : undefined} /> : (inputText.trim() ? <Send fontSize={isVerticalLayout ? 'small' : undefined} /> : <Forward fontSize={isVerticalLayout ? 'small' : undefined} />)}
+                        startIcon={sceneEnded && !inputText.trim() ? <Close fontSize={isVerticalLayout ? 'small' : undefined} /> : (inputText.trim() ? <Send fontSize={isVerticalLayout ? 'small' : undefined} /> : <Forward fontSize={isVerticalLayout ? 'small' : undefined} />)}
                         sx={{
-                            background: sceneEnded 
-                                ? 'linear-gradient(90deg,#ff8c66,#ff5a3b)' 
-                                : !sceneEnded 
-                                    ? 'linear-gradient(90deg,#00ff88,#00b38f)' 
-                                    : 'rgba(255,255,255,0.04)',
-                            color: sceneEnded ? '#fff' : '#00221a',
+                            background: sceneEnded && !inputText.trim()
+                                ? 'linear-gradient(90deg,#ff8c66,#ff5a3b)'
+                                : 'linear-gradient(90deg,#00ff88,#00b38f)',
+                            color: sceneEnded && !inputText.trim() ? '#fff' : '#00221a',
                             fontWeight: 800,
                             minWidth: isVerticalLayout ? 76 : 100,
                             fontSize: isVerticalLayout ? 'clamp(0.6rem, 2vw, 0.875rem)' : undefined,
                             padding: isVerticalLayout ? '4px 10px' : undefined,
                             '&:hover': {
-                                background: sceneEnded 
-                                    ? 'linear-gradient(90deg,#ff7a52,#ff4621)' 
-                                    : !sceneEnded 
-                                        ? 'linear-gradient(90deg,#00e67a,#009a7b)' 
-                                        : 'rgba(255,255,255,0.06)',
+                                background: sceneEnded && !inputText.trim()
+                                    ? 'linear-gradient(90deg,#ff7a52,#ff4621)'
+                                    : 'linear-gradient(90deg,#00e67a,#009a7b)',
                             },
                             '&:disabled': {
                                 background: 'rgba(255,255,255,0.04)',
@@ -935,11 +931,11 @@ export const SkitScreen: FC<SkitScreenProps> = ({ stage, setScreenType, isVertic
                             }
                         }}
                     >
-                        {sceneEnded ? 'Close' : (inputText.trim() ? 'Send' : 'Continue')}
+                        {sceneEnded && !inputText.trim() ? 'Close' : (inputText.trim() ? 'Send' : 'Continue')}
                     </Button>
                     <IconButton
                         onClick={handleWrapUp}
-                        disabled={loading || (index < 6) || sceneEnded}
+                        disabled={loading || (index < 6)}
                         onMouseEnter={(e) => setTooltip('Wrap up the current scene.')}
                         onMouseLeave={clearTooltip}
                         sx={{
@@ -964,12 +960,28 @@ export const SkitScreen: FC<SkitScreenProps> = ({ stage, setScreenType, isVertic
         </BlurredBackground>
     );
 
+    // Helper function to clear end node state when continuing from an end node
+    function clearEndNodeState(stageSkit: SkitData, scriptIndex: number) {
+        if (stageSkit.script[scriptIndex]?.endScene) {
+            stageSkit.script[scriptIndex].endScene = false;
+            stageSkit.summary = undefined;
+            stageSkit.endProperties = undefined;
+            stageSkit.endFactionChanges = undefined;
+            stageSkit.endRoleChanges = undefined;
+            setSceneEnded(false);
+        }
+    }
+
     // Handle reroll
     function handleReroll() {
         const stageSkit = stage().getSave().currentSkit;
         if (!stageSkit) return;
         // Cut out this index through the end of the script and re-generate:
         stageSkit.script = stageSkit.script.slice(0, index);
+        // Clear end node state; index is always the final node after truncation above.
+        if (index > 0) {
+            clearEndNodeState(stageSkit, index - 1);
+        }
         setLoading(true);
         setInputText('');
         stage().continueSkit().then(() => {
@@ -1002,6 +1014,9 @@ export const SkitScreen: FC<SkitScreenProps> = ({ stage, setScreenType, isVertic
 
         // Truncate script to current index (removes all messages after current position)
         stageSkit.script = stageSkit.script.slice(0, index + 1);
+        
+        // If we're continuing from an end node, clear the endScene flag and outcome
+        clearEndNodeState(stageSkit, index);
         if (inputText.trim()) {
             stageSkit.script.push({ speaker: stage().getSave().player.name.toUpperCase(), message: inputText, speechUrl: '' });
         }

@@ -281,7 +281,7 @@ export const MenuScreen: FC<MenuScreenProps> = ({ stage, setScreenType }) => {
                         fontSize: 'clamp(10px, 1.5vw, 12px)',
                     }}
                 >
-                    v2026.01.02 - Fixed faction modules. MCP testing; the beta mode option is not recommended at this time.
+                    v2026.01.03 - Ability to continue or re-roll from a skit outcome. Prompt revisions for various things.
                 </motion.div>
             </motion.div>
             </div>
