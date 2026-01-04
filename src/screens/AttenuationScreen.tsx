@@ -237,19 +237,6 @@ export const AttenuationScreen: FC<AttenuationScreenProps> = ({stage, setScreenT
 								}}
 							/>
 						</Box>
-
-						{/* Reserve status */}
-						<Typography 
-							variant="body2" 
-							sx={{
-								color: isReserveFull ? '#ff8c66' : 'rgba(255, 255, 255, 0.6)',
-								textAlign: 'center',
-								fontStyle: 'italic'
-							}}
-						>
-							Reserve: {reserveActors.length} / {RESERVE_LIMIT}
-							{isReserveFull && ' (Full - Remove actors to make space)'}
-						</Typography>
 					</Box>
 				</GlassPanel>
 
