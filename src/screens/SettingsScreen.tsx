@@ -659,7 +659,7 @@ export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onCon
                                                     // Delay to allow clicking on suggestions
                                                     setTimeout(() => setShowLanguageSuggestions(false), 200);
                                                 }}
-                                                placeholder="Type to search languages..."
+                                                placeholder="Enter any language or style..."
                                                 style={{ fontSize: '13px' }}
                                             />
                                             {/* Language suggestions dropdown */}

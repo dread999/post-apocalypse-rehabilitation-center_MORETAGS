@@ -125,7 +125,8 @@ export const AttenuationScreen: FC<AttenuationScreenProps> = ({stage, setScreenT
 					variant="bright"
 					style={{
 						width: isVerticalLayout ? '90%' : 'clamp(400px, 50vw, 700px)',
-						maxWidth: '800px'
+						maxWidth: '800px',
+						padding: isVerticalLayout ? '20px' : undefined
 					}}
 				>
 					<Typography 
@@ -133,7 +134,7 @@ export const AttenuationScreen: FC<AttenuationScreenProps> = ({stage, setScreenT
 						sx={{
 							color: '#00ff88',
 							textShadow: '0 0 10px rgba(0, 255, 136, 0.5)',
-							marginBottom: 3,
+							marginBottom: isVerticalLayout ? 1.5 : 3,
 							textAlign: 'center',
 							fontWeight: 700
 						}}
@@ -145,14 +146,14 @@ export const AttenuationScreen: FC<AttenuationScreenProps> = ({stage, setScreenT
 						variant="body2" 
 						sx={{
 							color: 'rgba(255, 255, 255, 0.7)',
-							marginBottom: 3,
+							marginBottom: isVerticalLayout ? 2 : 3,
 							textAlign: 'center'
 						}}
 					>
 						Request specific characters or apply modifiers to newly summoned characters.
 					</Typography>
 
-					<Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+					<Box sx={{ display: 'flex', flexDirection: 'column', gap: isVerticalLayout ? 2 : 2.5 }}>
 						{/* Actor URL input */}
 						<Box>
 							<Typography 

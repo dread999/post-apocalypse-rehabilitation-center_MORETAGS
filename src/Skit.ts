@@ -331,8 +331,8 @@ export function generateSkitPrompt(skit: SkitData, stage: Stage, historyLength: 
             // If module is a quarters, present it as "Owner's quarters" or "vacant quarters": module type otherwise.
             `\n\nThe PARC's current modules (rooms) and associated crew roles (modules or services not listed here are currently unavailable aboard the PARC):\n` +
             save.layout.getModulesWhere(module => true).map(module => module.type == 'quarters' ? 
-                (module.ownerId ? `${save.actors[module.ownerId]?.name || 'Unknown'}'s quarters` : 'vacant quarters') : 
-                `${module.getAttribute('name')} (Role: ${module.getAttribute('role') || 'None'})`).join(', ')
+                (module.ownerId ? `  ${save.actors[module.ownerId]?.name || 'Unknown'}'s Quarters` : '  Vacant Quarters') : 
+                `  ${module.getAttribute('name')} ${module.getAttribute('role') ? `(${module.getAttribute('role')} : ${module.ownerId ? `${save.actors[module.ownerId]?.name || 'Unknown'}` : 'None'})` : ''}: )`).join('\n')
         ) +
         `\n\n${playerName}'s profile: ${save.player.description}` +
         (stationAide ? (presentActorIds.has(stationAide.id) ? `\n\nThe holographic StationAide™ ${stationAide.name} is active in the scene. Profile: ${stationAide.profile}` : `\n\nThe holographic StationAide™ ${stationAide.name} remains absent from the scene unless summoned by the Director.`) : '') +
@@ -342,10 +342,10 @@ export function generateSkitPrompt(skit: SkitData, stage: Stage, historyLength: 
                 m && m.type !== 'quarters' && m.ownerId === actor.id
             )[0];
             const birthDay = save.timeline?.find(event => event.skit?.actorId === actor.id && event.skit?.type === SkitType.INTRO_CHARACTER)?.day || save.day;
-            return `${actor.name}\n  Description: ${actor.description}\n  Profile: ${actor.profile}\n  Character Arc: ${actor.characterArc}\n  Days Aboard: ${save.day - birthDay}\n` +
-            (roleModule ? `  Role: ${roleModule.getAttribute('role') || 'Patient'} (${actor.heldRoles[roleModule.getAttribute('role') || 'Patient'] || 0} days)\n` : '') +
-            `  Role Description: ${roleModule?.getAttribute('roleDescription') || 'This character has no assigned role aboard the PARC. They are to focus upon their own needs.'}\n` +
-            `  Stats:\n    ${Object.entries(actor.stats).map(([stat, value]) => `${stat}: ${value}`).join(', ')}`}).join('\n')}` +
+            return `  ${actor.name}\n    Description: ${actor.description}\n    Profile: ${actor.profile}\n    Character Arc: ${actor.characterArc}\n    Days Aboard: ${save.day - birthDay}\n` +
+            (roleModule ? `    Role: ${roleModule.getAttribute('role') || 'Patient'} (${actor.heldRoles[roleModule.getAttribute('role') || 'Patient'] || 0} days)\n` : '') +
+            `    Role Description: ${roleModule?.getAttribute('roleDescription') || 'This character has no assigned role aboard the PARC. They are to focus upon their own needs.'}\n` +
+            `    Stats:\n      ${Object.entries(actor.stats).map(([stat, value]) => `${stat}: ${value}`).join(', ')}`}).join('\n')}` +
         // List non-present characters for reference; just need description and profile:
         `\n\nAbsent Characters (Aboard the PARC But Not Currently in the Scene):\n${absentPatients.map(actor => {
             // Roll name and current location
@@ -354,7 +354,7 @@ export function generateSkitPrompt(skit: SkitData, stage: Stage, historyLength: 
             )[0];
             const module = save.layout.getModuleById(actor.locationId);
             const locationString = module ? (module.type === 'quarters' ? (module.ownerId === actor.id ? ' Their Quarters' : (`${save.actors[module.ownerId || ''] || 'Someone'}'s Quarters`)) : module.getAttribute('name')) : 'Unknown'
-            return `${actor.name}\n  Description: ${actor.description}\n  Profile: ${actor.profile}\n  Role: ${roleModule?.getAttribute('role') || 'Patient'}\n  Location: ${locationString}`;
+            return `  ${actor.name}\n    Description: ${actor.description}\n    Profile: ${actor.profile}\n    Role: ${roleModule?.getAttribute('role') || 'Patient'}\n    Location: ${locationString}`;
         }).join('\n')}` +
         // List away characters for reference; just need description and profile:
         `\n\nOff-Station Characters (On Assignment Away from the PARC):\n${awayPatients.map(actor => {
@@ -363,14 +363,14 @@ export function generateSkitPrompt(skit: SkitData, stage: Stage, historyLength: 
                 m && m.type !== 'quarters' && m.ownerId === actor.id
             )[0];
             const atFaction = save.factions[actor.locationId];
-            return `${actor.name}\n  Description: ${actor.description}\n  Profile: ${actor.profile}\n  Role: ${roleModule?.getAttribute('role') || 'Patient'}\n  On Assignment to: ${atFaction?.name || 'Unknown Faction'}`;
+            return `  ${actor.name}\n    Description: ${actor.description}\n    Profile: ${actor.profile}\n    Role: ${roleModule?.getAttribute('role') || 'Patient'}\n    On Assignment to: ${atFaction?.name || 'Unknown Faction'}`;
         }).join('\n')}` +
         // List cryo characters for reference; just need description and profile:
-        `\n\nCryo Frozen Characters (Absolutely Unavailable):\n${cryoPatients.map(actor => {
+        (cryoPatients.length > 0 ? `\n\nCryo Frozen Characters (Absolutely Unavailable):\n${cryoPatients.map(actor => {
             const entranceEvent = stage.getSave().timeline?.find(event => event.skit?.actorId === actor.id && event.skit?.type === SkitType.ENTER_CRYO);
             const entranceDate = entranceEvent ? entranceEvent.day : stage.getSave().day;
-            return `${actor.name}\n  Description: ${actor.description}\n  Profile: ${actor.profile}\n  Days in Cryo: ${save.day - entranceDate}`;
-        }).join('\n')}` +
+            return `  ${actor.name}\n    Description: ${actor.description}\n    Profile: ${actor.profile}\n    Days in Cryo: ${save.day - entranceDate}`;
+        }).join('\n')}` : '') +
         // List stat meanings, for reference:
         `\n\nStats:\n${Object.values(Stat).map(stat => `${stat.toUpperCase()}: ${getStatDescription(stat)}`).join('\n')}` +
         `\n\nScene Prompt:\n${generateSkitTypePrompt(skit, stage, skit.script.length > 0)}` +
