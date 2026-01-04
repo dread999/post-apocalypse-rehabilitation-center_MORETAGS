@@ -410,7 +410,7 @@ export function registerFactionModule(faction: Faction,
     registerModule(type, intrinsic, randomAction, (stage: Stage) => {
         // Custom modules can only be built once and require minimum reputation with the faction
         const factionRep = stage.getSave().factions[faction.id]?.reputation || 0;
-        const existingCount = stage.getLayout().getModulesWhere(m => m.type === intrinsic.name).length;
+        const existingCount = stage.getLayout().getModulesWhere(m => m.type === type).length;
         return existingCount === 0 && factionRep >= 6;
     });
 }

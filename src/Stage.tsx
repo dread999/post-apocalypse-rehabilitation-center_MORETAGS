@@ -50,6 +50,7 @@ export type SaveType = {
     characterArtist?: string;
     attenuation?: string;
     reserveActors?: Actor[];
+    language?: string;
 }
 
 export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateType, ConfigType> {

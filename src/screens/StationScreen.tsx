@@ -1649,7 +1649,7 @@ export const StationScreen: FC<StationScreenProps> = ({stage, setScreenType, isV
                                     fontWeight: 900,
                                 }}
                             >
-                                Select Module Type
+                                Add a Module
                             </Typography>
                             
                             {/* Affordable Modules */}

@@ -24,9 +24,20 @@ interface SettingsData {
     characterArtStyle: ArtStyle;
     characterArtist: string;
     tagToggles: { [key: string]: boolean };
+    language: string;
 }
 
 export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onConfirm, isNewGame = false }) => {
+
+    // Common languages for autocomplete
+    const commonLanguages = [
+        'English', 'Spanish', 'French', 'German', 'Italian', 'Portuguese', 'Russian', 'Japanese',
+        'Korean', 'Chinese (Simplified)', 'Chinese (Traditional)', 'Arabic', 'Hindi', 'Bengali',
+        'Urdu', 'Indonesian', 'Turkish', 'Vietnamese', 'Thai', 'Polish', 'Dutch', 'Swedish',
+        'Norwegian', 'Danish', 'Finnish', 'Greek', 'Hebrew', 'Czech', 'Hungarian', 'Romanian',
+        'Ukrainian', 'Catalan', 'Serbian', 'Croatian', 'Bulgarian', 'Slovak', 'Lithuanian',
+        'Latvian', 'Estonian', 'Slovenian', 'Malay', 'Tagalog', 'Swahili', 'Afrikaans', 'Catalan'
+    ];
 
     // Each toggle can map to multiple tags when saved.
     const tagMap: { [key: string]: string[] } = {
@@ -88,6 +99,7 @@ export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onCon
         disableEmotionImages: stage().getSave().disableEmotionImages ?? false,
         characterArtStyle: stage().getSave().characterArtStyle ?? 'original',
         characterArtist: stage().getSave().characterArtist ?? '',
+        language: stage().getSave().language || 'English',
         // Tag toggles; disabling these can be used to filter undesired content. Load from save array, if one. Otherwise, default to true.
         tagToggles: stage().getSave().bannedTags ? Object.fromEntries(
             Object.keys(tagMap).map(key => [
@@ -95,6 +107,9 @@ export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onCon
             ])
         ) : Object.keys(tagMap).reduce((acc, key) => ({...acc, [key]: true}), {})
     });
+
+    const [languageSuggestions, setLanguageSuggestions] = useState<string[]>([]);
+    const [showLanguageSuggestions, setShowLanguageSuggestions] = useState(false);
 
     const handleSave = () => {
         console.log('Saving settings:', settings);
@@ -117,6 +132,7 @@ export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onCon
         save.disableEmotionImages = settings.disableEmotionImages;
         save.characterArtStyle = settings.characterArtStyle;
         save.characterArtist = settings.characterArtist;
+        save.language = settings.language;
 
         stage().saveGame();
         onConfirm();
@@ -137,6 +153,27 @@ export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onCon
             ...prev,
             [field]: value
         }));
+    };
+
+    const handleLanguageChange = (value: string) => {
+        setSettings(prev => ({ ...prev, language: value }));
+        
+        // Filter and update suggestions
+        if (value.trim()) {
+            const filtered = commonLanguages.filter(lang => 
+                lang.toLowerCase().includes(value.toLowerCase())
+            ).slice(0, 8); // Limit to 8 suggestions
+            setLanguageSuggestions(filtered);
+            setShowLanguageSuggestions(filtered.length > 0);
+        } else {
+            setLanguageSuggestions([]);
+            setShowLanguageSuggestions(false);
+        }
+    };
+
+    const selectLanguage = (language: string) => {
+        setSettings(prev => ({ ...prev, language }));
+        setShowLanguageSuggestions(false);
     };
 
     return (
@@ -590,6 +627,95 @@ export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onCon
                                             </motion.div>
                                         )}
                                     </AnimatePresence>
+
+                                    {/* Language Input */}
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                        <label
+                                            htmlFor="language-input"
+                                            style={{
+                                                color: 'rgba(255, 255, 255, 0.8)',
+                                                fontSize: '12px',
+                                                fontWeight: 'bold',
+                                            }}
+                                        >
+                                            Language (Experimental)
+                                        </label>
+                                        <div style={{ position: 'relative' }}>
+                                            <TextInput
+                                                id="language-input"
+                                                fullWidth
+                                                value={settings.language}
+                                                onChange={(e) => handleLanguageChange(e.target.value)}
+                                                onFocus={() => {
+                                                    if (settings.language.trim()) {
+                                                        handleLanguageChange(settings.language);
+                                                    }
+                                                }}
+                                                onBlur={() => {
+                                                    // Delay to allow clicking on suggestions
+                                                    setTimeout(() => setShowLanguageSuggestions(false), 200);
+                                                }}
+                                                placeholder="Type to search languages..."
+                                                style={{ fontSize: '13px' }}
+                                            />
+                                            {/* Language suggestions dropdown */}
+                                            <AnimatePresence>
+                                                {showLanguageSuggestions && languageSuggestions.length > 0 && (
+                                                    <motion.div
+                                                        initial={{ opacity: 0, y: -10 }}
+                                                        animate={{ opacity: 1, y: 0 }}
+                                                        exit={{ opacity: 0, y: -10 }}
+                                                        transition={{ duration: 0.15 }}
+                                                        style={{
+                                                            position: 'absolute',
+                                                            top: '100%',
+                                                            left: 0,
+                                                            right: 0,
+                                                            marginTop: '4px',
+                                                            background: 'rgba(0, 20, 40, 0.95)',
+                                                            border: '2px solid rgba(0, 255, 136, 0.3)',
+                                                            borderRadius: '8px',
+                                                            overflow: 'hidden',
+                                                            zIndex: 1000,
+                                                            maxHeight: '200px',
+                                                            overflowY: 'auto',
+                                                        }}
+                                                    >
+                                                        {languageSuggestions.map((lang, index) => (
+                                                            <motion.div
+                                                                key={lang}
+                                                                initial={{ opacity: 0, x: -10 }}
+                                                                animate={{ opacity: 1, x: 0 }}
+                                                                transition={{ delay: index * 0.02 }}
+                                                                onClick={() => selectLanguage(lang)}
+                                                                onMouseDown={(e) => e.preventDefault()} // Prevent blur
+                                                                style={{
+                                                                    padding: '10px 12px',
+                                                                    cursor: 'pointer',
+                                                                    color: 'rgba(255, 255, 255, 0.8)',
+                                                                    fontSize: '13px',
+                                                                    transition: 'all 0.15s ease',
+                                                                    borderBottom: index < languageSuggestions.length - 1 
+                                                                        ? '1px solid rgba(0, 255, 136, 0.1)' 
+                                                                        : 'none',
+                                                                }}
+                                                                onMouseEnter={(e) => {
+                                                                    e.currentTarget.style.background = 'rgba(0, 255, 136, 0.15)';
+                                                                    e.currentTarget.style.color = '#00ff88';
+                                                                }}
+                                                                onMouseLeave={(e) => {
+                                                                    e.currentTarget.style.background = 'transparent';
+                                                                    e.currentTarget.style.color = 'rgba(255, 255, 255, 0.8)';
+                                                                }}
+                                                            >
+                                                                {lang}
+                                                            </motion.div>
+                                                        ))}
+                                                    </motion.div>
+                                                )}
+                                            </AnimatePresence>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 

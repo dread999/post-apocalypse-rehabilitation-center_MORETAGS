@@ -410,17 +410,17 @@ export async function generateSkitScript(skit: SkitData, wrapUp: boolean, stage:
 
     // There are two optional phrases for gently/more firmly prodding the model toward wrapping up the scene, and then we calculate one to show based on the skit.script.length and some randomness:
     const wrapUpPhrases = [
-        `\n\nPriority Instruction: Consider whether the scene can reach a natural stopping point or suspended moment where it might employ a "[SUMMARY]" tag.`, // Gently prod toward and ending.
+        `\n\nPriority Instruction: Consider whether the scene can reach a natural stopping point where it might employ a "[SUMMARY]" tag.`, // Gently prod toward and ending.
         `\n\nCritical Instruction: This scene is running long and needs a summary. Finish the immediate beat and include a "[SUMMARY]" tag.` // Firmer prod
     ];
 
     const wrapupPrompt = wrapUp ? wrapUpPhrases[1] : (skit.script.length > 30 ? wrapUpPhrases[0] : '');
 
     const generalAlternativePrompts = [
-        'Write compelling, fresh content that emphasizes dialogue and character interactions with suitable wit and flavor.',
-        'Craft engaging prose that highlights character dynamics and emotional beats that respect individual characters\' style.',
-        'Focus on creating vivid and distinct moments that bring out character personalities through their actions and dialogue.',
-        'Take care to avoid repetition, and instead focus on advancing the scene with new developments and interactions.'
+        'Write compelling, fresh content that emphasizes dialogue and character interactions with suitable wit and flavor without recycling past material.',
+        'Craft engaging and dynamic beats that highlight character dynamics and emotions while dodging redundant content.',
+        'Eschew reliance on past themes by creating vivid and distinct moments that showcase character personalities through their actions and dialogue.',
+        'Take care to avoid repetition of past events, instead focusing on advancing the scene with new developments and novel interactions.'
     ];
     const alternativePrompt = generalAlternativePrompts[Math.floor(Math.random() * generalAlternativePrompts.length)];
 
@@ -472,7 +472,8 @@ export async function generateSkitScript(skit: SkitData, wrapUp: boolean, stage:
                 `Generally, focus upon interpersonal dynamics, character growth, faction and patient relationships, and the state of the Station, its capabilities, and its inhabitants.` +
                 (skit.script.length > 0 ? (`\nIf the script reaches a conclusion, depicts a scene change, or hits an implied closure, ` +
                 `remember to insert a "[SUMMARY: A paragraph summarizing this scene's key events or impacts.]" tag, so the game engine can store the summary.${wrapupPrompt}`) : '') +
-                `\n\n${alternativePrompt}`
+                `\n\n${alternativePrompt}` +
+                ((stage.getSave().language || 'English').toLowerCase() !== 'english' ? `\n\nNote: The game is currently being played in ${stage.getSave().language}. Regardless of historic language use, please generate this skit content in ${stage.getSave().language} accordingly.` : '')
             );
 
             const response = await stage.generator.textGen({
