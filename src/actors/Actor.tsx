@@ -39,7 +39,7 @@ const ART_PROMPT: {[key in ArtStyle]: string} = {
     'original': 'A professional upper-body portrait of this character',
     'anime': 'Render this character in a classic visual novel, anime style with vibrant colors, expressive features, inks, and cel shading',
     'chibi': 'Render this character in a chibi style with exaggerated proportions, large eyes, and a cute, playful appearance; use bright colors and a bold white outline',
-    'comic': 'Render this character in a comicbook style with dynamic poses, bold lines, and vibrant colors. This is a 90s era comicbook, with halftone shading, dramatic lighting, and intense inking',
+    'comic': 'Render this character in a comicbook style with dynamic poses, intense inks, heavy contours, bold lines, and oversaturated colors. Pulls from the aesthetics of late-90s comicbooks, in the style of studios like Image or WildStorm.',
     'pixel art': 'Render this character in a half-resolution pixel art style, with a limited color palette, dithered shading, and vibrant retro aesthetic',
     'hyper-realistic': 'Render this character in a hyper-realistic style with intricate details, elaborate textures, and dramatic lighting to create a striking and immersive illustration',
     'realistic': 'Picture this character in a photographic style with natural proportions, detailed textures, and subtle lighting to create a believable and lifelike image',
@@ -494,7 +494,7 @@ export async function generateEmotionImage(actor: Actor, emotion: Emotion, stage
         console.log(`Generating ${emotion} emotion image for actor ${actor.name}`);
         stage.imageGenerationPromises[`actor/${actor.id}`] = stage.makeImageFromImage({
             image: actor.emotionPack['base'] || '',
-            prompt: `Give this character a clearly ${EMOTION_PROMPTS[emotion]}, gesture, or pose, while maintaining their core appearance: ${actor.description}.`,
+            prompt: `Give this character ${EMOTION_PROMPTS[emotion]}, while maintaining their core appearance: ${actor.description}.`,
             remove_background: true,
             transfer_type: 'edit'
         }, '');

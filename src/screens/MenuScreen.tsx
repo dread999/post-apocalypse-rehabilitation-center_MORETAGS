@@ -281,7 +281,7 @@ export const MenuScreen: FC<MenuScreenProps> = ({ stage, setScreenType }) => {
                         fontSize: 'clamp(10px, 1.5vw, 12px)',
                     }}
                 >
-                    v2026.01.03 - Ability to continue or re-roll from a skit outcome. Language selection.
+                    v2026.01.08 - Some art prompting changes.
                 </motion.div>
             </motion.div>
             </div>
