@@ -32,10 +32,143 @@ tags:
  - 'PARC'
 
 creator_notes: "
-<p>This is a generative simulation game where you run a rehabilitation center
-for survivors of multiversal apocalypses. Manage resources, extend the station, and help patients
-find their place in a new universe.</p>
-<p>I'll prettify these notes and add documentation later; for now, see the <a href=\"https://chub.ai/characters/JakeH/post-apocalypse-rehabilitation-center-20622f03e7a4\">official bot</a>.</p>
+<style>.parc-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); } .parc-section { background: #f8f9fa; border-left: 4px solid #667eea; padding: 15px; margin: 15px 0; border-radius: 4px; } .parc-section h3 { margin-top: 0; color: #667eea; font-size: 1.3em; } .parc-module { background: white; border: 1px solid #e1e8ed; padding: 12px; margin: 10px 0; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); } .parc-module h4 { color: #764ba2; margin: 0 0 8px 0; font-size: 1.1em; } .parc-module p { margin: 5px 0; color: #555; } .parc-stat { display: inline-block; background: #667eea; color: white; padding: 3px 8px; border-radius: 3px; font-size: 0.85em; margin: 2px; } .parc-feature-list { list-style: none; padding-left: 0; } .parc-feature-list li { padding: 8px 0; padding-left: 25px; position: relative; } .parc-feature-list li:before { content: '⚡'; position: absolute; left: 0; font-size: 1.2em; } .parc-tip { background: #fff3cd; border-left: 4px solid #ffc107; padding: 12px; margin: 15px 0; border-radius: 4px; } .parc-tip strong { color: #856404; } .parc-link { color: #667eea; text-decoration: none; font-weight: bold; } .parc-link:hover { text-decoration: underline; } </style>
+
+<div class=\"parc-header\">
+  <h2 style=\"margin: 0 0 10px 0;\">🌌 Post-Apocalypse Rehabilitation Center (PARC)</h2>
+  <p style=\"margin: 0; opacity: 0.9;\">A multiversal station management simulation where you resurrect and rehabilitate survivors from collapsed universes, giving them a second chance at life in a new galaxy.</p>
+</div>
+
+<div class=\"parc-section\">
+  <h3>📋 Game Overview</h3>
+  <p>You are the Director of the PARC—a space station orbiting a black hole that serves as a gateway between universes. Your station pulls \"echoes\" of individuals from destroyed realities and gives them new life. Manage resources, build modules, assign roles, and navigate the complex social dynamics of a crew pulled from countless different worlds.</p>
+  <p>Each playthrough is unique, with characters and factions procedurally loaded from Chub's extensive library, ensuring no two games are alike.</p>
+</div>
+
+<div class=\"parc-section\">
+  <h3>✨ Key Features</h3>
+  <ul class=\"parc-feature-list\">
+    <li><strong>Procedural Content Generation:</strong> Leverages Chub's generative AI to create character art, voice lines, and dynamic story content.</li>
+    <li><strong>Dynamic Character System:</strong> Characters are loaded from Chub's library, creating unique patients and faction representatives for every playthrough.</li>
+    <li><strong>Interactive Skits:</strong> Visual novel-style scenes where your choices impact relationships, station stats, and story progression.</li>
+    <li><strong>Station Management:</strong> Build critical or frivolous modules, manage six critical station stats, and balance competing needs.</li>
+    <li><strong>Faction Diplomacy:</strong> Navigate relationships with external factions, trade resources, and find employment for your patients.</li>
+    <li><strong>Content Filters:</strong> Extensive content management tools let you tailor the experience to your preferences.</li>
+    <li><strong>Save System:</strong> Full save/load functionality to preserve your progress or experiment with different station choices.</li>
+  </ul>
+</div>
+
+<div class=\"parc-section\">
+  <h3>📊 Station Stats</h3>
+  <p>Your station's performance is measured across six interconnected statistics. Every decision you make affects these values:</p>
+  <div style=\"margin-top: 10px;\">
+    <span class=\"parc-stat\">⚙️ Systems</span> - Mechanical and structural integrity<br>
+    <span class=\"parc-stat\">🛏️ Comfort</span> - Living conditions and livability<br>
+    <span class=\"parc-stat\">🍽️ Provision</span> - Food, water, and essential supplies<br>
+    <span class=\"parc-stat\">🛡️ Security</span> - Safety and defense capabilities<br>
+    <span class=\"parc-stat\">💖 Harmony</span> - Social cohesion and crew morale<br>
+    <span class=\"parc-stat\">💰 Wealth</span> - Financial resources<br>
+  </div>
+</div>
+
+<div class=\"parc-section\">
+  <h3>🏗️ Core Modules</h3>
+  <p>Build and upgrade your station with specialized modules. Most modules serve a unique function and can be assigned a crew member to manage it.</p>
+  
+  <div class=\"parc-module\">
+    <h4>Echo Chamber</h4>
+    <p><strong>Role:</strong> Assistant</p>
+    <p>The heart of your operation. Here you \"echofuse\" new patients from the black hole's resonance, pulling them into reality and beginning their rehabilitation journey.</p>
+  </div>
+  
+  <div class=\"parc-module\">
+    <h4>Comms</h4>
+    <p><strong>Role:</strong> Liaison</p>
+    <p>Your connection to the outside universe. Manage communications with external factions, coordinate trades, and find work placements for rehabilitated patients.</p>
+  </div>
+  
+  <div class=\"parc-module\">
+    <h4>Generator</h4>
+    <p><strong>Role:</strong> Engineer</p>
+    <p>The station's power source and engineering hub. Maintains mechanical systems and keeps the station operational.</p>
+  </div>
+  
+  <div class=\"parc-module\">
+    <h4>Quarters</h4>
+    <p><strong>Role:</strong> Resident | <strong>Cost:</strong> <span class=\"parc-stat\">Provision 1</span></p>
+    <p>Personal living spaces for crew members. Build multiple quarters to house your growing population. Visit residents for intimate, personal interactions.</p>
+  </div>
+  
+  <div class=\"parc-module\">
+    <h4>Hub</h4>
+    <p><strong>Role:</strong> Custodian | <strong>Cost:</strong> <span class=\"parc-stat\">Provision 1</span></p>
+    <p>A communal gathering space where crew members socialize, eat, and build relationships. The social heart of your station.</p>
+  </div>
+  
+  <div class=\"parc-module\">
+    <h4>Infirmary</h4>
+    <p><strong>Role:</strong> Medic | <strong>Cost:</strong> <span class=\"parc-stat\">Provision 1</span> <span class=\"parc-stat\">Comfort 1</span></p>
+    <p>Medical facility for treating injuries and illnesses. Essential for maintaining crew health and well-being.</p>
+  </div>
+  
+  <div class=\"parc-module\">
+    <h4>Gym</h4>
+    <p><strong>Role:</strong> Trainer | <strong>Cost:</strong> <span class=\"parc-stat\">Comfort 1</span> <span class=\"parc-stat\">Wealth 1</span></p>
+    <p>Fitness center for physical training and conditioning. Helps maintain crew fitness and morale through exercise.</p>
+  </div>
+  
+  <div class=\"parc-module\">
+    <h4>Lounge</h4>
+    <p><strong>Role:</strong> Concierge | <strong>Cost:</strong> <span class=\"parc-stat\">Comfort 2</span> <span class=\"parc-stat\">Wealth 1</span></p>
+    <p>Recreation area with entertainment and refreshments. <em>Requires at least 3 patients on station.</em></p>
+  </div>
+  
+  <div class=\"parc-module\">
+    <h4>Armory</h4>
+    <p><strong>Role:</strong> Officer | <strong>Cost:</strong> <span class=\"parc-stat\">Systems 1</span> <span class=\"parc-stat\">Wealth 1</span></p>
+    <p>Security hub managing weapons and defense systems. <em>Requires contact with at least 3 factions.</em></p>
+  </div>
+  
+  <div class=\"parc-module\">
+    <h4>Cryo Bank</h4>
+    <p><strong>Role:</strong> Keeper | <strong>Cost:</strong> <span class=\"parc-stat\">Harmony 2</span> <span class=\"parc-stat\">Systems 2</span></p>
+    <p>Advanced cryogenic facility for long-term patient preservation. Manage who stays active and who goes into stasis. <em>Requires at least 5 patients.</em></p>
+  </div>
+  
+  <div class=\"parc-module\">
+    <h4>Aperture</h4>
+    <p><strong>Role:</strong> Attenuator | <strong>Cost:</strong> <span class=\"parc-stat\">Systems 2</span> <span class=\"parc-stat\">Wealth 2</span></p>
+    <p>Experimental research facility for studying and manipulating the echo phenomenon. Shape the nature of who and what gets pulled from the black hole. <em>Requires Systems stat of 5+.</em></p>
+  </div>
+
+  <div class=\"parc-module\">
+    <h4>Faction Modules</h4>
+    <p><strong>Role:</strong> Assorted | <strong>Cost:</strong> <span class=\"parc-stat\">Wealth 3</span></p>
+    <p>Every faction offers a distinct, generated module and role, unique to that faction. <em>Requires high reputation with the associated faction.</em></p>
+  </div>
+  <div class=\"parc-module\">
+    <h4>Director Module</h4>
+    <p><strong>Role:</strong> Director's Choice</p>
+    <p>Every game allows you to define a custom module and role of your choice; name the module and role and allow the game to generate content accordingly.</p>
+  </div>
+</div>
+
+<div class=\"parc-section\">
+  <h3>🎮 How to Play</h3>
+  <ol>
+    <li><strong>Visit the PARC:</strong> <a href=\"https://chub.ai/characters/JakeH/post-apocalypse-rehabilitation-center-20622f03e7a4\" class=\"parc-link\">Official Bot Page</a></li> 
+    <li><strong>Configure settings:</strong> Define your director, StationAide™, custom starter module, and content preferences.</li>
+    <li><strong>Choose patients:</strong> Use the Echo Chamber to resurrect your first patients.</li>
+    <li><strong>Build modules:</strong> Construct modules to house and employ your crew.</li>
+    <li><strong>Assign roles:</strong> Give crew members jobs managing different modules.</li>
+    <li><strong>Establish connections:</strong> Work with factions to find employment and trade opportunities for your patients.</li>
+    <li><strong>Navigate skits:</strong> Make freeform choices in interactive scenes that shape relationships and outcomes.</li>
+  </ol>
+</div>
+
+<div style=\"text-align: center; padding: 20px; color: #888; font-style: italic;\">
+  Thank you for exploring the PARC! Please share your feedback and experiences in the comments!
+</div>
 "
 
 # The schema of any user-supplied config.
