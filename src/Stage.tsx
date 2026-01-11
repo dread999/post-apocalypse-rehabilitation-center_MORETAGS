@@ -9,7 +9,7 @@ import { generateSkitScript, SkitData, SkitType, updateCharacterArc } from "./Sk
 import { smartRehydrate } from "./SaveRehydration";
 import { Emotion } from "./actors/Emotion";
 import { assignActorToRole } from "./utils";
-import { z } from 'zod';
+import { any, z } from 'zod';
 import { CallToolResult } from '@modelcontextprotocol/sdk/types';
 
 type MessageStateType = any;
@@ -101,6 +101,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
 
     private userId: string;
     private characterId: string;
+    private authenticated: boolean = false;
 
     // Expose a simple grid size (can be tuned)
     public gridWidth = DEFAULT_GRID_WIDTH;
@@ -128,6 +129,10 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
         } = data;
 
         console.log(characters);
+        // voice_id is in the data but not on the Character type. However, it is the only field in the character data that is irreplicable by other means.
+        // I believe it is the only way to verify that this chat involves the official PARC bot.
+        this.authenticated = Object.values(characters).some((c: any) => c['voice_id'] === '8d387ea3-6918-4628-927a-fe024745bea2');
+        console.log('Authenticated:', this.authenticated);
 
         console.log(chatState);
         this.saves = chatState?.saves || [];

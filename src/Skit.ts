@@ -314,8 +314,6 @@ export function generateSkitPrompt(skit: SkitData, stage: Stage, historyLength: 
     const faction = skit.context.factionId ? save.factions[skit.context.factionId] : null;
     const factionRepresentative = faction ? save.actors[faction.representativeId || ''] : null;
     const stationAide = save.actors[save.aide.actorId || ''];
-    console.log('StationAide details:');
-    console.log(stationAide);
 
     let fullPrompt = `{{messages}}\nPremise:\nThis is a sci-fi visual novel game set on a space station that resurrects and rehabilitates patients who died in other universes' apocalypses: ` +
         `the Post-Apocalypse Rehabilitation Center. ` +
@@ -554,13 +552,15 @@ export async function generateSkitScript(skit: SkitData, wrapUp: boolean, stage:
                             let finalEmotion: Emotion | undefined;
                             if (emotionName in Emotion) {
                                 finalEmotion = emotionName as Emotion;
+                                console.log(`Recognized standard emotion "${finalEmotion}" for ${matched.name}`);
                             } else if (emotionName in EMOTION_MAPPING) {
                                 finalEmotion = EMOTION_MAPPING[emotionName];
                                 console.log(`Mapped non-standard emotion "${emotionName}" to "${finalEmotion}" for ${matched.name}`);
+                            } else {
+                                console.warn(`Unrecognized emotion "${emotionName}" for ${matched.name}; skipping tag.`);
                             }
                             
                             if (!finalEmotion) continue;
-                            console.log(`Detected emotion tag for ${matched.name}: ${finalEmotion}`);
                             newEmotionTags[matched.name] = finalEmotion;
                         }
                     }

@@ -249,13 +249,10 @@ const SkitOutcomeDisplay: FC<SkitOutcomeDisplayProps> = ({ skitData, stage, layo
             }
         });
 
-        console.log('Initial locations:', skitData.initialActorLocations);
-        console.log('Final locations after movements:', finalLocations);
-        
         // Check each actor for off-station changes
         Object.entries(finalLocations).forEach(([actorId, finalLocation]) => {
             const actor = save.actors[actorId];
-            if (!actor || actor.factionId !== undefined) return;
+            if (!actor) return;
             
             // Skip actors who actually changed factions (that's a different display)
             if (skitData.endFactionChanges && skitData.endFactionChanges[actorId] !== undefined) {
@@ -270,7 +267,6 @@ const SkitOutcomeDisplay: FC<SkitOutcomeDisplayProps> = ({ skitData, stage, layo
             // Check if final location is a faction
             const finalFaction = Object.values(save.factions).find(f => f.id === finalLocation);
 
-            console.log('Off-station check:', actor.name, 'from', initialLocation, 'to', finalLocation, 'initialFaction:', initialFaction?.name, 'finalFaction:', finalFaction?.name);
             // Going off-station (from non-faction to faction location)
             if (!initialFaction && finalFaction) {
                 offStationChanges.push({
