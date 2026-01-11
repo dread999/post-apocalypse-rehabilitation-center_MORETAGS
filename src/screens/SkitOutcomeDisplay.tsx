@@ -50,9 +50,10 @@ interface SkitOutcomeDisplayProps {
     stage: Stage;
     layout?: any;
     messageBoxTopVh?: number;
+    inputText?: string;
 }
 
-const SkitOutcomeDisplay: FC<SkitOutcomeDisplayProps> = ({ skitData, stage, layout, messageBoxTopVh = 60 }) => {
+const SkitOutcomeDisplay: FC<SkitOutcomeDisplayProps> = ({ skitData, stage, layout, messageBoxTopVh = 60, inputText = '' }) => {
     // Calculate bottom position based on message box top
     const bottomVh = Math.max(100 - messageBoxTopVh + 2, 15); // At least 15vh from bottom, 2vh padding above message box
     
@@ -248,8 +249,11 @@ const SkitOutcomeDisplay: FC<SkitOutcomeDisplayProps> = ({ skitData, stage, layo
             }
         });
 
+        console.log('Initial locations:', skitData.initialActorLocations);
+        console.log('Final locations after movements:', finalLocations);
+        
         // Check each actor for off-station changes
-        Object.entries(skitData.initialActorLocations).forEach(([actorId, initialLocation]) => {
+        Object.entries(finalLocations).forEach(([actorId, finalLocation]) => {
             const actor = save.actors[actorId];
             if (!actor || actor.factionId !== undefined) return;
             
@@ -258,7 +262,7 @@ const SkitOutcomeDisplay: FC<SkitOutcomeDisplayProps> = ({ skitData, stage, layo
                 return;
             }
 
-            const finalLocation = finalLocations[actorId];
+            const initialLocation = skitData.initialActorLocations?.[actorId] ?? '';
             if (!finalLocation || initialLocation === finalLocation) return;
 
             // Check if initial location is a faction
@@ -266,6 +270,7 @@ const SkitOutcomeDisplay: FC<SkitOutcomeDisplayProps> = ({ skitData, stage, layo
             // Check if final location is a faction
             const finalFaction = Object.values(save.factions).find(f => f.id === finalLocation);
 
+            console.log('Off-station check:', actor.name, 'from', initialLocation, 'to', finalLocation, 'initialFaction:', initialFaction?.name, 'finalFaction:', finalFaction?.name);
             // Going off-station (from non-faction to faction location)
             if (!initialFaction && finalFaction) {
                 offStationChanges.push({
@@ -344,6 +349,18 @@ const SkitOutcomeDisplay: FC<SkitOutcomeDisplayProps> = ({ skitData, stage, layo
                     }}
                 >
                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
+                        {inputText.length > 0 && (
+                            <span 
+                                style={{ 
+                                    color: '#ffaa00',
+                                    fontSize: '1.3em',
+                                    fontWeight: 900
+                                }}
+                                title="Submitting input will discard these outcomes"
+                            >
+                                ⚠
+                            </span>
+                        )}
                         <TrendingUp sx={{ color: '#00ff88', fontSize: '1.5rem' }} />
                         <Typography
                             variant="h6"

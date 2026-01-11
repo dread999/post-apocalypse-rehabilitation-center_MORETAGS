@@ -587,7 +587,7 @@ export const SkitScreen: FC<SkitScreenProps> = ({ stage, setScreenType, isVertic
 
             {/* Skit Outcome Display - shown when scene ends */}
             {sceneEnded && index === skit.script.length - 1 && (
-                <SkitOutcomeDisplay skitData={skit} stage={stage()} layout={stage().getSave().layout} messageBoxTopVh={messageBoxTopVh} />
+                <SkitOutcomeDisplay skitData={skit} stage={stage()} layout={stage().getSave().layout} messageBoxTopVh={messageBoxTopVh} inputText={inputText} />
             )}
 
             {/* Actor Card - shown when hovering over an actor, only if no outcome is displayed */}
@@ -934,7 +934,7 @@ export const SkitScreen: FC<SkitScreenProps> = ({ stage, setScreenType, isVertic
                             }
                         }}
                     >
-                        {sceneEnded && !inputText.trim() ? 'Close' : (inputText.trim() ? 'Send' : 'Continue')}
+                        {sceneEnded && !inputText.trim() ? 'End' : (inputText.trim() ? 'Send' : 'Continue')}
                     </Button>
                     <IconButton
                         onClick={handleWrapUp}

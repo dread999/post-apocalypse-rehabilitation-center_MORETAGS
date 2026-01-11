@@ -189,6 +189,7 @@ export async function loadReserveActorFromFullPath(fullPath: string, stage: Stag
     const response = await fetch(stage.characterDetailQuery.replace('{fullPath}', fullPath));
     const item = await response.json();
     const dataName = item.node.definition.name.replaceAll('{{char}}', item.node.definition.name).replaceAll('{{user}}', 'Individual X');
+    console.log(item);
 
     const data = {
         name: dataName,
@@ -221,6 +222,8 @@ export const VOICE_MAP: {[key: string]: string} = {
 };
 
 export async function loadReserveActor(data: any, stage: Stage): Promise<Actor|null> {
+    console.log('Loading reserve actor:', data.name);
+    console.log(data);
 
     // Attempt to substitute words to avert bad content into something more agreeable (if the distillation still has these, then drop the card).
     const bannedWordSubstitutes: {[key: string]: string} = {
