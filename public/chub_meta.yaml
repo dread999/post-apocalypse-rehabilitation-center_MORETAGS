@@ -32,13 +32,6 @@ tags:
  - 'PARC'
 
 creator_notes: "
-<style>.parc-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); } .parc-section { background: #f8f9fa; border-left: 4px solid #667eea; padding: 15px; margin: 15px 0; border-radius: 4px; } .parc-section h3 { margin-top: 0; color: #667eea; font-size: 1.3em; } .parc-module { background: white; border: 1px solid #e1e8ed; padding: 12px; margin: 10px 0; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); } .parc-module h4 { color: #764ba2; margin: 0 0 8px 0; font-size: 1.1em; } .parc-module p { margin: 5px 0; color: #555; } .parc-stat { display: inline-block; background: #667eea; color: white; padding: 3px 8px; border-radius: 3px; font-size: 0.85em; margin: 2px; } .parc-feature-list { list-style: none; padding-left: 0; } .parc-feature-list li { padding: 8px 0; padding-left: 25px; position: relative; } .parc-feature-list li:before { content: '⚡'; position: absolute; left: 0; font-size: 1.2em; } .parc-tip { background: #fff3cd; border-left: 4px solid #ffc107; padding: 12px; margin: 15px 0; border-radius: 4px; } .parc-tip strong { color: #856404; } .parc-link { color: #667eea; text-decoration: none; font-weight: bold; } .parc-link:hover { text-decoration: underline; } </style>
-
-<div class=\"parc-header\">
-  <h2 style=\"margin: 0 0 10px 0;\">🌌 Post-Apocalypse Rehabilitation Center (PARC)</h2>
-  <p style=\"margin: 0; opacity: 0.9;\">A multiversal station management simulation where you resurrect and rehabilitate survivors from collapsed universes, giving them a second chance at life in a new galaxy.</p>
-</div>
-
 <div class=\"parc-section\">
   <h3>📋 Game Overview</h3>
   <p>You are the Director of the PARC—a space station orbiting a black hole that serves as a gateway between universes. Your station pulls \"echoes\" of individuals from destroyed realities and gives them new life. Manage resources, build modules, assign roles, and navigate the complex social dynamics of a crew pulled from countless different worlds.</p>
@@ -48,7 +41,7 @@ creator_notes: "
 <div class=\"parc-section\">
   <h3>✨ Key Features</h3>
   <ul class=\"parc-feature-list\">
-    <li><strong>Procedural Content Generation:</strong> Leverages Chub's generative AI to create character art, voice lines, and dynamic story content.</li>
+    <li><strong>Generative Content:</strong> Leverages Chub's generative endpoints to create character art, voice lines, and dynamic story content.</li>
     <li><strong>Dynamic Character System:</strong> Characters are loaded from Chub's library, creating unique patients and faction representatives for every playthrough.</li>
     <li><strong>Interactive Skits:</strong> Visual novel-style scenes where your choices impact relationships, station stats, and story progression.</li>
     <li><strong>Station Management:</strong> Build critical or frivolous modules, manage six critical station stats, and balance competing needs.</li>
@@ -169,6 +162,7 @@ creator_notes: "
 <div style=\"text-align: center; padding: 20px; color: #888; font-style: italic;\">
   Thank you for exploring the PARC! Please share your feedback and experiences in the comments!
 </div>
+<style>.parc-section { background: #f8f9fa; border-left: 4px solid #667eea; padding: 15px; margin: 15px 0; border-radius: 4px; } .parc-section h3 { margin-top: 0; color: #667eea; font-size: 1.3em; } .parc-module { background: white; border: 1px solid #e1e8ed; padding: 12px; margin: 10px 0; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); } .parc-module h4 { color: #764ba2; margin: 0 0 8px 0; font-size: 1.1em; } .parc-module p { margin: 5px 0; color: #555; } .parc-stat { display: inline-block; background: #667eea; color: white; padding: 3px 8px; border-radius: 3px; font-size: 0.85em; margin: 2px; } .parc-feature-list { list-style: none; padding-left: 0; } .parc-feature-list li { padding: 8px 0; padding-left: 25px; position: relative; } .parc-feature-list li:before { content: '⚡'; position: absolute; left: 0; font-size: 1.2em; } .parc-tip { background: #fff3cd; border-left: 4px solid #ffc107; padding: 12px; margin: 15px 0; border-radius: 4px; } .parc-tip strong { color: #856404; } .parc-link { color: #667eea; text-decoration: none; font-weight: bold; } .parc-link:hover { text-decoration: underline; } </style>
 "
 
 # The schema of any user-supplied config.
