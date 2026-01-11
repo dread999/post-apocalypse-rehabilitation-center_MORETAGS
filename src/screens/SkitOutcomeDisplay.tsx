@@ -345,18 +345,6 @@ const SkitOutcomeDisplay: FC<SkitOutcomeDisplayProps> = ({ skitData, stage, layo
                     }}
                 >
                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
-                        {inputText.length > 0 && (
-                            <span 
-                                style={{ 
-                                    color: '#ffaa00',
-                                    fontSize: '1.3em',
-                                    fontWeight: 900
-                                }}
-                                title="Submitting input will discard these outcomes"
-                            >
-                                ⚠
-                            </span>
-                        )}
                         <TrendingUp sx={{ color: '#00ff88', fontSize: '1.5rem' }} />
                         <Typography
                             variant="h6"
@@ -371,6 +359,32 @@ const SkitOutcomeDisplay: FC<SkitOutcomeDisplayProps> = ({ skitData, stage, layo
                             Outcome
                         </Typography>
                     </Box>
+                    <Typography
+                        variant="caption"
+                        sx={{
+                            fontSize: '0.7rem',
+                            color: 'rgba(255,255,255,0.6)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: 0.5,
+                            mt: 0.5
+                        }}
+                    >
+                        {inputText.length > 0 && (
+                            <span 
+                                style={{ 
+                                    color: '#ffaa00',
+                                    fontSize: '1.1em',
+                                    fontWeight: 900
+                                }}
+                                title="Submitting input will discard these outcomes"
+                            >
+                                ⚠
+                            </span>
+                        )}
+                        {inputText.length > 0 ? 'Continuing will forfeit this outcome.' : 'End to confirm; continue to ignore.'}
+                    </Typography>
                 </Paper>
             </div>
 
