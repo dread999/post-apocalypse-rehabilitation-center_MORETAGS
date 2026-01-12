@@ -331,7 +331,7 @@ export function generateSkitPrompt(skit: SkitData, stage: Stage, historyLength: 
             `\n\nThe PARC's current modules (rooms) and associated crew roles (modules or services not listed here are currently unavailable aboard the PARC):\n` +
             save.layout.getModulesWhere(module => true).map(module => module.type == 'quarters' ? 
                 (module.ownerId ? `  ${save.actors[module.ownerId]?.name || 'Unknown'}'s Quarters` : '  Vacant Quarters') : 
-                `  ${module.getAttribute('name')} ${module.getAttribute('role') ? `(${module.getAttribute('role')} : ${module.ownerId ? `${save.actors[module.ownerId]?.name || 'Unknown'}` : 'None'})` : ''}: )`).join('\n')
+                `  ${module.getAttribute('name')} ${module.getAttribute('role') ? `(${module.getAttribute('role')} : ${module.ownerId ? `${save.actors[module.ownerId]?.name || 'Unknown'}` : 'None'})` : ''}`).join('\n')
         ) +
         `\n\n${playerName}'s profile: ${save.player.description}` +
         (stationAide ? (presentActorIds.has(stationAide.id) ? `\n\nThe holographic StationAide™ ${stationAide.name} is active in the scene. Profile: ${stationAide.profile}` : `\n\nThe holographic StationAide™ ${stationAide.name} remains absent from the scene unless summoned by the Director.`) : '') +
@@ -385,7 +385,7 @@ export function generateSkitPrompt(skit: SkitData, stage: Stage, historyLength: 
                         (`\n\n  Summary of scene in ${moduleDescription} (${stage.getSave().day - v.day}) days ago:\n` + v.skit.summary)
                         )
                 } else {
-                    return `Action ${stage.getSave().day - v.day} days ago: ${v.description || ''}`;
+                    return `\n\n  Action ${stage.getSave().day - v.day} days ago: ${v.description || ''}`;
                 }
             }).join('') : '') +
         (module ? (`\n\nCurrent Module:\n  The following scene is set in ` +
