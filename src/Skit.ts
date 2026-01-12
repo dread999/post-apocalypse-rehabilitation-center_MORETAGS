@@ -462,12 +462,12 @@ export async function generateSkitScript(skit: SkitData, wrapUp: boolean, stage:
                 `  Embedded within this script, you may employ special tags to trigger various game mechanics. ` +
                 `\n\n  Emotion tags ("[CHARACTER NAME EXPRESSES JOY]") should be used to indicate visible emotional shifts in a character's appearance using a single-word emotion name. ` +
                 `\n\n  A [PAUSE] tag can be used to signal a suspension of this excerpt without fully ending the scene, in case the three-to-five-entry quota has already been met. ` +
-                `\n\n  Character movement tags ("[CHARACTER NAME moves to MODULE NAME]" or "[CHARACTER NAME moves to FACTION NAME]") must be included when a character moves to a different module on the station OR to a different faction (abstractly representing any faction mission or time away). ` +
-                `MODULE NAME should be the name of an existing module type (e.g., 'comms', 'infirmary', 'lounge'), a character's quarters (e.g., 'Susan's quarters' or just 'quarters' for their own), or simply "Here" to move to the scene's location or "Another module" to leave this area. ` +
-                `A faction move is a more significant event, indicating a departure from the PARC itself, typically to visit a faction or engage in a mission or job for that faction (use the faction name as the location, even when the job is not "at" the faction). ` +
-                `The game engine uses [x moves to y] tags to update character locations and visually display character presence in scenes, so it is essential to use these tags when Absent Characters enter the scene or Present Characters leave. ` +
-                `Absent characters may not physically participate in the scene until they have moved into the area using a [CHARACTER NAME moves to HERE] tag ` +
-                `(if an Absent character has erroneously participated, add the tag after the fact to correct the discrepancy going forward). ` +
+                `\n\n  A Character movement tag ("[CHARACTER NAME moves to LOCATION]") must be used when an Absent Character enters the scene. ` +
+                `\n\n  Character movement tags ("[CHARACTER NAME moves to LOCATION]") must also be included when a character leaves the scene or moves to a different module on the station. ` +
+                `\n\n  Character movement tags ("[CHARACTER NAME moves to LOCATION]") are also used to move a character to another faction, abstractly representing any faction mission or time away. ` +
+                `\n\n  For all Character movement tags, LOCATION should be the name of an existing module type (e.g., 'comms', 'infirmary', 'lounge'), a character's quarters (e.g., 'Susan's quarters' or just 'quarters' for their own), or simply "Here" to move to the scene's location or "Another module" to leave this area. ` +
+                `If a faction name is used for the LOCATION, it indicates that the character is departing from the PARC itself, typically to visit a faction or engage in a mission or job on that faction's behalf (use the faction name as the location, even when the job is not "at" the faction). ` +
+                `The game engine relies upon Character movement tags to update character locations and visually display character presence in scenes, so it is essential to use these tags when Absent Characters enter the scene or Present Characters leave. ` +
                 `The scene itself cannot transition to a new area. These tags are not presented to users, so the content of the script should also mention characters entering or exiting the scene. ` +
                 (skit.script.length > 0 ? (`If a scene transition is desired, the current scene must first be summarized. ` +
                     `\n\n  A "[SUMMARY]" tag (e.g., "[SUMMARY: A paragraph summarizing the scene's events with key details and impacts.]") should be included when the scene reaches a conclusive moment. `) : '') +
@@ -755,7 +755,7 @@ export async function generateSkitScript(skit: SkitData, wrapUp: boolean, stage:
                             `If the scene presents no appreciable change, or all relevant tags have been presented, the response may be ended early with [END]. \n\n`
                         );
                         const requestAnalysis = await stage.generator.textGen({
-                            prompt: analysisPrompt, // + (stage.betaMode ? '%%%TOOLS%%%\n\nMake tool calls for appropriate stat changes.\n\n' : ''),
+                            prompt: analysisPrompt + (stage.betaMode ? '%%%TOOLS%%%\n\nMake tool calls for appropriate stat changes.\n\n' : ''),
                             min_tokens: 50,
                             max_tokens: stage.betaMode ? 1500 : (summary ? 300 : 500),
                             include_history: true,

@@ -180,10 +180,14 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
 
         if (this.betaMode) {
 
-            this.mcp.tool('modify-station-stat', 'If events result in a change to a station stat, use this tool to register a station stat change.',
+            this.mcp.registerTool('modify-station-stat',
                 {
-                        stat: z.enum(Object.values(StationStat) as [string, ...string[]]),
-                        change: z.number().min(-10).max(10),
+                    title: 'Modify Station Stat',
+                    description: 'If events result in a change to a station stat, use this tool to register a station stat change.',
+                    inputSchema: {
+                        stat: z.enum(Object.values(StationStat) as [string, ...string[]]).describe('Station stat to modify'),
+                        change: z.number().min(-10).max(10).describe('Amount to change the stat by'),
+                    }
                 },
                 async ({ stat, change }): Promise<CallToolResult> => {
                     // Eventually, we will attach this to some sort of resolution content for the current skit, to be displayed in SkitScreen before the "Close" button becomes available, and executed when the skit ends.
@@ -194,11 +198,15 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                 }
             );
 
-            this.mcp.tool('modify-actor-stat', 'If events result in a change to an actor (character) stat, use this tool to register an actor stat change.',
+            this.mcp.tool('modify-actor-stat', 
                 {
-                    actor: z.string().min(1),
-                    stat: z.enum(Object.values(Stat) as [string, ...string[]]),
-                    change: z.number().min(-10).max(10),
+                    title: 'Modify Actor Stat',
+                    description: 'If events result in a change to an actor stat, use this tool to register an actor stat change.',
+                    inputSchema: {
+                        actor: z.string().min(1).describe('Name of the Actor whose stat is to be modified'),
+                        stat: z.enum(Object.values(Stat) as [string, ...string[]]).describe('Actor stat to modify'),
+                        change: z.number().min(-10).max(10).describe('Amount to change the stat by'),
+                    }
                 },
                 async ({ actor, stat, change }): Promise<CallToolResult> => {
                     // Eventually, we will attach this to some sort of resolution content for the current skit, to be displayed in SkitScreen before the "Close" button becomes available, and executed when the skit ends.
