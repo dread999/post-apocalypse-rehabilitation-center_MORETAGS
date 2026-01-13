@@ -5,7 +5,7 @@ import Nameplate from './Nameplate';
 import AuthorLink from './AuthorLink';
 import { scoreToGrade } from '../utils';
 import Faction from '../factions/Faction';
-import { FlightTakeoff } from '@mui/icons-material';
+import { AccessTime } from '@mui/icons-material';
 
 export enum ActorCardSection {
     STATS = 'stats',
@@ -119,7 +119,7 @@ export const ActorCard: FC<ActorCardProps> = ({
                         justifyContent: 'center',
                         gap: '4px',
                     }}>
-                        <FlightTakeoff style={{ fontSize: 'clamp(0.7rem, 1.8vmin, 0.9rem)' }} />
+                        <AccessTime style={{ fontSize: 'clamp(0.7rem, 1.8vmin, 0.9rem)' }} />
                         Visiting {visitingFaction.name}
                     </div>
                 )}

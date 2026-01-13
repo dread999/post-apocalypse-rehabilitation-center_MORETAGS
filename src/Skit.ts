@@ -755,14 +755,15 @@ export async function generateSkitScript(skit: SkitData, wrapUp: boolean, stage:
                             `typically, changes should be minor (+/- 1 or 2) at a time, unless something dramatic occurs. ` +
                             `If the scene presents no appreciable change, or all relevant tags have been presented, the response may be ended early with [END]. \n\n`
                         );
+                        
                         const requestAnalysis = await stage.generator.textGen({
                             prompt: analysisPrompt, // + (stage.betaMode ? '%%%TOOLS%%%\n\nMake tool calls for appropriate stat changes.\n\n' : ''),
                             min_tokens: 50,
                             max_tokens: (summary ? 300 : 500), //stage.betaMode ? 1500 : (summary ? 300 : 500),
                             include_history: true,
                             stop: ['[END]'],
-                            
                         });
+
                         console.log('Request analysis response:', requestAnalysis?.result);
                         if (requestAnalysis && requestAnalysis.result) {
                             const analysisText = requestAnalysis.result;
