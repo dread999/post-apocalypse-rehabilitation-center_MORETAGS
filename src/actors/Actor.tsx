@@ -493,7 +493,7 @@ export async function generateAdditionalActorImages(actor: Actor, stage: Stage):
 }
 
 export async function generateEmotionImage(actor: Actor, emotion: Emotion, stage: Stage, force: boolean = false): Promise<string> {
-    if (actor.emotionPack['base'] && (!stage.imageGenerationPromises[`actor/${actor.id}`] || force) && !stage.getSave().disableEmotionImages) {
+    if (actor.emotionPack['base'] && (!stage.imageGenerationPromises[`actor/${actor.id}`] || force) && (emotion == 'neutral' || !stage.getSave().disableEmotionImages)) {
         console.log(`Generating ${emotion} emotion image for actor ${actor.name}`);
         stage.imageGenerationPromises[`actor/${actor.id}`] = stage.makeImageFromImage({
             image: actor.emotionPack['base'] || '',
