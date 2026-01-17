@@ -798,14 +798,27 @@ export const SkitScreen: FC<SkitScreenProps> = ({ stage, setScreenType, isVertic
                                 disabled={loading}
                                 size="small"
                                 sx={{
-                                    color: '#88ccff',
-                                    border: '1px solid rgba(136,204,255,0.2)',
+                                    color: '#00ff88',
+                                    border: '1px solid rgba(0,255,136,0.2)',
                                     padding: isVerticalLayout ? '4px' : undefined,
                                     minWidth: isVerticalLayout ? '28px' : undefined,
+                                    opacity: 1,
+                                    transform: 'scale(1)',
                                     transition: 'all 0.3s ease',
+                                    animation: 'fadeIn 0.3s ease',
+                                    '@keyframes fadeIn': {
+                                        from: {
+                                            opacity: 0,
+                                            transform: 'scale(0.8)',
+                                        },
+                                        to: {
+                                            opacity: 1,
+                                            transform: 'scale(1)',
+                                        },
+                                    },
                                     '&:hover': {
-                                        borderColor: 'rgba(136,204,255,0.4)',
-                                        color: '#aaddff',
+                                        borderColor: 'rgba(0,255,136,0.4)',
+                                        color: '#00ffaa',
                                     },
                                     '&:disabled': { color: 'rgba(255,255,255,0.3)' }
                                 }}
@@ -831,7 +844,20 @@ export const SkitScreen: FC<SkitScreenProps> = ({ stage, setScreenType, isVertic
                                         border: '1px solid rgba(0,255,136,0.2)',
                                         padding: isVerticalLayout ? '4px' : undefined,
                                         minWidth: isVerticalLayout ? '28px' : undefined,
+                                        opacity: 1,
+                                        transform: 'scale(1)',
                                         transition: 'all 0.3s ease',
+                                        animation: 'fadeIn 0.3s ease',
+                                        '@keyframes fadeIn': {
+                                            from: {
+                                                opacity: 0,
+                                                transform: 'scale(0.8)',
+                                            },
+                                            to: {
+                                                opacity: 1,
+                                                transform: 'scale(1)',
+                                            },
+                                        },
                                         '&:hover': {
                                             borderColor: 'rgba(0,255,136,0.4)',
                                             color: '#00ffaa',
@@ -857,7 +883,20 @@ export const SkitScreen: FC<SkitScreenProps> = ({ stage, setScreenType, isVertic
                                         border: '1px solid rgba(255,107,107,0.2)',
                                         padding: isVerticalLayout ? '4px' : undefined,
                                         minWidth: isVerticalLayout ? '28px' : undefined,
+                                        opacity: 1,
+                                        transform: 'scale(1)',
                                         transition: 'all 0.3s ease',
+                                        animation: 'fadeIn 0.3s ease',
+                                        '@keyframes fadeIn': {
+                                            from: {
+                                                opacity: 0,
+                                                transform: 'scale(0.8)',
+                                            },
+                                            to: {
+                                                opacity: 1,
+                                                transform: 'scale(1)',
+                                            },
+                                        },
                                         '&:hover': {
                                             borderColor: 'rgba(255,107,107,0.4)',
                                             color: '#ff5252',
