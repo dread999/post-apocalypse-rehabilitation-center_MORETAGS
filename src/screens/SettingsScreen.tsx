@@ -114,7 +114,6 @@ export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onCon
     const handleSave = () => {
         console.log('Saving settings:', settings);
         
-        // Update player name in save
         if (isNewGame) {
             stage().newGame();
         }

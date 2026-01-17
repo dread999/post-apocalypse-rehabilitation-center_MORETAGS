@@ -104,28 +104,25 @@ export async function loadReserveFaction(fullPath: string, stage: Stage): Promis
     const data = {
         name: dataName,
         fullPath: item.node.fullPath,
-        description: item.node.definition.description.replaceAll('{{char}}', dataName).replaceAll('{{user}}', 'Individual X'),
         personality: item.node.definition.personality.replaceAll('{{char}}', dataName).replaceAll('{{user}}', 'Individual X'),
     };
 
     // Replace curly braces with parentheses
     data.name = data.name.replace(/{/g, '(').replace(/}/g, ')');
-    data.description = data.description.replace(/{/g, '(').replace(/}/g, ')');
     data.personality = data.personality.replace(/{/g, '(').replace(/}/g, ')');
 
     // Apply banned word substitutions
     for (const [bannedWord, substitute] of Object.entries(bannedWordSubstitutes)) {
         const regex = new RegExp(bannedWord, 'gi');
         data.name = data.name.replace(regex, substitute);
-        data.description = data.description.replace(regex, substitute);
         data.personality = data.personality.replace(regex, substitute);
     }
 
     // Check for banned words and non-english characters
-    if (Object.keys(bannedWordSubstitutes).some(word => data.description.toLowerCase().includes(word) || data.personality.toLowerCase().includes(word) || data.name.toLowerCase().includes(word))) {
+    if (Object.keys(bannedWordSubstitutes).some(word => data.personality.toLowerCase().includes(word) || data.name.toLowerCase().includes(word))) {
         console.log(`Immediately discarding faction due to banned words: ${data.name}`);
         return null;
-    } else if (/[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]/.test(`${data.name}${data.description}${data.personality}`)) {
+    } else if (/[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]/.test(`${data.name}${data.personality}`)) {
         console.log(`Immediately discarding faction due to non-english characters: ${data.name}`);
         return null;
     }
@@ -144,7 +141,7 @@ export async function loadReserveFaction(fullPath: string, stage: Stage): Promis
             `crafting a complex and intriguing organization that fits seamlessly into the game's expansive, flavorful, and varied sci-fi setting. ` +
             (Object.values(stage.getSave().factions).length > 0 ? `Ensure that this new faction feels distinct from or complementary to the Established Factions, as the primary goal is engaging diversity.` : '') +
             `The Original Details may not lend themselves directly to a faction, so creative interpretation is encouraged; pull from and lean into the dominant themes found in the details. ` +
-            `\n\nOriginal Details about ${data.name}:\n${data.description} ${data.personality}` +
+            `\n\nOriginal Details about ${data.name}:\n${data.personality}` +
             `\n\nInstructions: After carefully considering this description, generate a concise breakdown for a faction based upon these details in the following strict format:\n` +
             `System: NAME: The faction's simple name\n` +
             `DESCRIPTION: A vivid description of the faction's purpose, values, and role in the galaxy.\n` +
