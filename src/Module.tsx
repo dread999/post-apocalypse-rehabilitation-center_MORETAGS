@@ -690,6 +690,7 @@ export async function generateModule(name: string, stage: Stage, additionalInfor
             `DESCRIPTION: A vivid visual description of the module's appearance, to be fed into image generation.\n` +
             `ROLE NAME: The simple title of the role associated with this module (1-2 words).\n` +
             `ROLE DESCRIPTION: A brief summary of the responsibilities and duties associated with this role.\n` +
+            `COST: The resource cost to build this module, specified as 1-3 points of one or two station stats. Available stats are: Systems, Comfort, Provision, Security, Harmony, Wealth. Format as "StatName X, StatName Y" (e.g., "Wealth 2, Systems 1" or "Provision 2").\n` +
             `#END#\n\n` +
             `Example Response:\n` +
             `MODULE NAME: Cryo Bank\n` +
@@ -697,10 +698,19 @@ export async function generateModule(name: string, stage: Stage, additionalInfor
             `DESCRIPTION: A futuristic lab with a bank of cryo pods along the left wall and some advanced computer systems against the right wall.\n` +
             `ROLE NAME: Keeper\n` +
             `ROLE DESCRIPTION: Responsible for managing the cryo bank, overseeing patient stasis, and ensuring the proper functioning of cryogenic equipment.\n` +
+            `COST: Harmony 2, Systems 2\n` +
+            `#END#\n\n` +
+            `Example Response:\n` +
+            `MODULE NAME: Gym\n` +
+            `PURPOSE: The gym is the station's fitness center, where crew members work out and maintain their physical health. Scenes here often involve training sessions, fitness challenges, or ways to boost crew morale through physical activity.\n` +
+            `DESCRIPTION: A sci-fi gym with advanced exercise equipment and weightlifting stations.\n` +
+            `ROLE NAME: Trainer\n` +
+            `ROLE DESCRIPTION: Oversees the physical fitness and training of the crew, ensuring they remain in peak condition for their duties aboard the station.\n` +
+            `COST: Comfort 1, Wealth 1\n` +
             `#END#`,
         stop: ['#END'],
         include_history: true,
-        max_tokens: 350,
+        max_tokens: 400,
     });
 
     console.log('Generated module distillation:');
@@ -720,6 +730,7 @@ export async function generateModule(name: string, stage: Stage, additionalInfor
     let description = '';
     let roleName = '';
     let roleDescription = '';
+    let costString = '';
 
     for (const line of lines) {
         if (line.startsWith('MODULE NAME:')) {
@@ -732,6 +743,8 @@ export async function generateModule(name: string, stage: Stage, additionalInfor
             roleName = line.substring('ROLE NAME:'.length).trim();
         } else if (line.startsWith('ROLE DESCRIPTION:')) {
             roleDescription = line.substring('ROLE DESCRIPTION:'.length).trim();
+        } else if (line.startsWith('COST:')) {
+            costString = line.substring('COST:'.length).trim();
         }
     }
 
@@ -748,6 +761,37 @@ export async function generateModule(name: string, stage: Stage, additionalInfor
         return null;
     }
 
+    // Parse cost with default fallback
+    const parsedCost: {[key in StationStat]?: number} = {};
+    
+    if (costString) {
+        // Parse cost string like "Wealth 2, Systems 1" or "Provision 2"
+        const costParts = costString.split(',').map(s => s.trim());
+        
+        for (const part of costParts) {
+            // Match pattern: "StatName Number"
+            const match = part.match(/^([a-zA-Z]+)\s+(\d+)$/);
+            if (match) {
+                const statName = match[1];
+                const amount = parseInt(match[2]);
+                
+                // Find matching StationStat (case-insensitive)
+                for (const stat of Object.values(StationStat)) {
+                    if (stat.toLowerCase() === statName.toLowerCase()) {
+                        // Clamp to 1-3 as specified
+                        parsedCost[stat] = Math.max(1, Math.min(3, amount));
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    
+    // Apply default cost if parsing failed or resulted in no costs
+    const finalCost = Object.keys(parsedCost).length > 0 
+        ? parsedCost 
+        : { [StationStat.WEALTH]: 2, [StationStat.SYSTEMS]: 1 }; // Default: 2 Wealth, 1 Systems
+
     const module: ModuleIntrinsic = {
         name: moduleName,
         skitPrompt: purpose,
@@ -756,9 +800,7 @@ export async function generateModule(name: string, stage: Stage, additionalInfor
         roleDescription: roleDescription,
         baseImageUrl: '',
         defaultImageUrl: '',
-        cost: {
-            Wealth: 3 // Default cost for custom modules
-        },
+        cost: finalCost,
     };
 
     await generateModuleImage(module, stage);

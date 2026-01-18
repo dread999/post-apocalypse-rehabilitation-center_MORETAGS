@@ -898,7 +898,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                 const moduleData = save.currentSkit.endNewModule;
                 // Kick off module generation
                 generateModule(this.getSave().directorModule.name, this, 
-                    `This is a new module for the PARC: ${moduleData.moduleName}. This module will offer the following potential role: ${moduleData.roleName}. ${moduleData.description || ''}\n` +
+                    `This is a new module for the PARC: ${moduleData.moduleName}. This module will offer the following potential role: ${moduleData.roleName}. ${moduleData.description}\n` +
                     this.getSave().directorModule.roleName).then(module => {
                         if (module) {
                             const id = generateUuid();
