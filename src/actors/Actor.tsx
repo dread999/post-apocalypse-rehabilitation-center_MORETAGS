@@ -521,16 +521,33 @@ export async function generateActorDecor(actor: Actor, module: Module, stage: St
     if (Object.keys(stage.imageGenerationPromises).includes(`actor/decor/${actor.id}/${module.type}`) || stage.getSave().disableEmotionImages) {
         return '';
     }
+
     console.log(`Generating decor image for actor ${actor.name} in module ${module.getAttribute('name')}`);
-    // Generate a decor image based on the module's description and the actor's description
-    stage.imageGenerationPromises[`actor/decor/${actor.id}/${module.type}`] = stage.makeImageFromImage({
-        image: module.getAttribute('baseImageUrl') || '',
-        prompt: `Redecorate this sci-fi room aboard a space station: ${module.getAttribute('name')}.\n` +
-                `Update the room with suitable furnishings, decorations, or details to match this aesthetic: ${actor.style}.\n` +
-                `Keep the scene unoccupied; remove any people from the result.`,
-        remove_background: false,
-        transfer_type: 'edit'
-    }, module.getAttribute('baseImageUrl') || '');
+    
+    // Bundle both the description generation and image generation into a single promise
+    stage.imageGenerationPromises[`actor/decor/${actor.id}/${module.type}`] = (async () => {
+        // Generate a decor prompt for this actor for this space, based on the module's description and the actor's style
+        const descriptionPrompt = `Generate an updated description of this sci-fi room aboard a space station: ${module.getAttribute('name')}.\n` +
+            `The current description is: ${module.getAttribute('description')}.\n` +
+            `At the "System:" prompt, output an updated description of this room, including additional details for furnishings and decorations to help the description match this aesthetic: ${actor.style}.\n` +
+            `Example Response:\n` +
+            `System: The room is a sleek, modern space with clean lines and minimalist furnishings. The walls are adorned with abstract art pieces in bold colors, and the furniture is made of polished metal and glass. A large window offers a stunning view of the stars outside. The overall vibe is futuristic and sophisticated, with a touch of warmth added by soft lighting and plush textiles.\n#END#\n`;
+        const decorDescriptionResponse = await stage.generator.textGen({
+            prompt: descriptionPrompt,
+            stop: ['#END']
+        });
+
+        // Generate a decor image based on the generated room description
+        const decorImageUrl = await stage.makeImageFromImage({
+            image: module.getAttribute('baseImageUrl') || '',
+            prompt: `Redecorate this sci-fi room aboard a space station to match this description: ${decorDescriptionResponse?.result || module.getAttribute('description')}.\n` +
+                    `The scene remains unoccupied; remove any people from the result.`,
+            remove_background: false,
+            transfer_type: 'edit'
+        }, module.getAttribute('baseImageUrl') || '');
+
+        return decorImageUrl;
+    })();
     
     const decorImageUrl = await stage.imageGenerationPromises[`actor/decor/${actor.id}/${module.type}`];
     delete stage.imageGenerationPromises[`actor/decor/${actor.id}/${module.type}`];

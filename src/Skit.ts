@@ -743,7 +743,6 @@ export async function generateSkitScript(skit: SkitData, wrapUp: boolean, stage:
                             `These tags ensure that the gamestate location data reflects the scene's events; it is especially important to include movement tags for any characters leaving on or returning from missions; ` +
                             `remember that moving "to" a faction is an abstract location representing a task on that faction's behalf, whether that task is at the faction location or elsewhere entirely.` +
 
-                            (stage.betaMode ?
                             `\n#New Module Definition:#\n` +
                             `If the scene results in the conception of a new module for the station ` +
                             `(e.g., a character requests a specific new space or a new role is being established, which requires a dedicated workspace), ` +
@@ -753,7 +752,6 @@ export async function generateSkitScript(skit: SkitData, wrapUp: boolean, stage:
                             `[NEW MODULE: MedBay | ROLE Medic | DESCRIPTION A small medical bay equipped for basic treatments and check-ups.]\n` +
                             `[NEW MODULE: Lounge | ROLE Social Coordinator | DESCRIPTION A comfortable lounge area for relaxation and socialization among staff and patients.]\n` +
                             `This tag allows the game engine to create new modules dynamically based on scene events, expanding the station's capabilities and accommodating character roles as needed.\n` +
-                            '' : '') +
 
                             (!summary ? 
                                 `\n#Summarize Scene:#\n` +

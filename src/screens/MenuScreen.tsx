@@ -282,7 +282,7 @@ export const MenuScreen: FC<MenuScreenProps> = ({ stage, setScreenType }) => {
                     }}
                 >
                     {stage().isAuthenticated 
-                        ? 'v2026.01.17 - Working to make messages editable. Some tooltip changes.'
+                        ? 'v2026.01.17 - Editable messages. Dynamic module generation. Improved decor images. Tooltip improvements.'
                         : (
                             <>
                                 This is an unofficial bot; for the latest version for PARC, visit:{' '}
