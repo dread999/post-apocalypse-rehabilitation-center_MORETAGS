@@ -253,18 +253,24 @@ function processMovementTag(rawTag: string, stage: Stage, skit: SkitData): { act
         destinationModuleId = skit.moduleId || '';
     } else {
         // Try to find a module by type name
-        const targetModule = stage.getLayout().getModulesWhere(m => namesMatch(destinationName, m.getAttribute('name')))[0];
-        if (targetModule) {
+        // Use findBestNameMatch:
+        const modules = stage.getLayout().getModulesWhere(m => !!m.getAttribute('name'));
+        const modulesWithName = modules.map(m => ({ name: m.getAttribute('name') || '', module: m }));
+        const targetModuleMatch = findBestNameMatch(destinationName, modulesWithName);
+        if (targetModuleMatch) {
+            const targetModule = targetModuleMatch.module;
             destinationModuleId = targetModule.id;
+            console.log(`Movement detected: ${matched.name} moves to module ${targetModule.getAttribute('name')} (${targetModule.id})`);
         } else {
             // If no module found, check if it matches a faction name using best match logic
+            console.log(`No module matched for destination: ${destinationName}, checking factions.`);
             const matchingFaction = findBestNameMatch(
                 destinationName,
                 Object.values(stage.getSave().factions)
             );
             if (matchingFaction) {
                 destinationModuleId = matchingFaction.id;
-                console.log(`Movement detected: ${matched.name} moves to faction ${matchingFaction.name} (${matchingFaction.id})`);
+                console.log(`Movement detected: ${matched.name} leaves to faction ${matchingFaction.name} (${matchingFaction.id})`);
             } else {
                 console.warn(`Could not find module or faction matching: ${destinationName}`);
             }
@@ -898,7 +904,7 @@ export async function generateSkitScript(skit: SkitData, wrapUp: boolean, stage:
                                 // Process movement tags using the shared function
                                 const movementResult = processMovementTag(trimmed.slice(1, -1), stage, skit);
                                 if (movementResult) {
-                                    console.log('Processing movement tag from analysis:', trimmed);
+                                    console.log('Processed movement tag from analysis:', trimmed);
                                     // Apply movement to the last script entry
                                     if (scriptEntries.length > 0) {
                                         const lastEntry = scriptEntries[scriptEntries.length - 1];
