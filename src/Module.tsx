@@ -417,7 +417,7 @@ export function registerFactionModule(faction: Faction,
 
 export function registerModule(type: string, intrinsic: ModuleIntrinsic, action?: (module: Module, stage: Stage, setScreenType: (type: ScreenType) => void) => void, available?: (stage: Stage) => boolean): void {
     MODULE_TEMPLATES[type] = {...intrinsic,
-        action: action || intrinsic.action,
+        action: action || intrinsic.action || randomAction,
         available: available || ((stage: Stage) => {return stage.getLayout().getModulesWhere(m => m.type === type).length === 0})
     };
 }
