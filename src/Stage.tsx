@@ -119,6 +119,31 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
 
     initialized: boolean = false;
 
+    // Callback to show priority messages in the tooltip bar
+    private priorityMessageCallback?: (message: string, icon?: any, durationMs?: number) => void;
+
+    /**
+     * Register a callback to show priority messages in the tooltip bar.
+     * This is typically set by the App component that has access to the TooltipContext.
+     */
+    setPriorityMessageCallback(callback: (message: string, icon?: any, durationMs?: number) => void) {
+        this.priorityMessageCallback = callback;
+    }
+
+    /**
+     * Show a priority message in the tooltip bar that temporarily overrides normal tooltips.
+     * @param message The message to display
+     * @param icon Optional icon to show with the message
+     * @param durationMs How long to show the message (default: 5000ms)
+     */
+    showPriorityMessage(message: string, icon?: any, durationMs: number = 5000) {
+        if (this.priorityMessageCallback) {
+            this.priorityMessageCallback(message, icon, durationMs);
+        } else {
+            console.warn('Priority message callback not set:', message);
+        }
+    }
+
     constructor(data: InitialData<InitStateType, ChatStateType, MessageStateType, ConfigType>) {
 
         super(data);
@@ -476,6 +501,8 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
         if (!this.getSave().directorModule) {
             this.getSave().directorModule = { ...this.freshSave.directorModule };
         }
+
+        this.generateUncreatedModules();
         
         const placeholderModule = {
             name: this.getSave().directorModule.name,
@@ -580,7 +607,11 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
             } else if (faction.reputation >= 5) {
                 // Kick off module generation for this faction:
                 console.log('Generating module for faction:', faction.name);
-                generateFactionModule(faction, this);
+                generateFactionModule(faction, this).then(moduleName => {
+                    if (moduleName) {
+                        this.showPriorityMessage(`New module "${moduleName}" now available!`);
+                    }
+                });
             }
             if (faction.representativeId && save.actors[faction.representativeId]) {
                 const repActor = save.actors[faction.representativeId];
@@ -680,6 +711,8 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                 if (newActor !== null) {
                     this.getSave().reserveActors = [...(this.getSave().reserveActors || []), newActor];
                     this.saveGame();
+                } else {
+                    this.showPriorityMessage(`Failed to load character ${fullPath}.`);
                 }
             } catch (err) {
                 console.error('Error loading reserve actors', err);
@@ -882,6 +915,37 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
         save.currentSkit = skit;
     }
 
+    generateUncreatedModules() {
+        // Go through past skits in the timeline and find any with endNewModule data, and generate those modules if they don't already exist.
+        const save = this.getSave();
+        const skitsToProcess: SkitData[] = [];
+        if (save.timeline) {
+            save.timeline.forEach(entry => {
+                if (entry.skit && entry.skit.endNewModule) {
+                    skitsToProcess.push(entry.skit);
+                }
+            });
+        }
+
+        skitsToProcess.forEach(skit => {
+            if (skit.endNewModule) {
+                const moduleData = skit.endNewModule;
+                // Kick off module generation
+                generateModule(moduleData.moduleName, this, 
+                    moduleData.description,
+                    moduleData.roleName).then(module => {
+                        if (module) {
+                            this.getSave().customModules = { ...this.getSave().customModules, [moduleData.id]: module };
+                            registerModule(moduleData.id, module);
+                            this.saveGame();
+                            // Show priority message in tooltip
+                            this.showPriorityMessage(`New module "${moduleData.moduleName}" now available!`);
+                        }
+                });
+            }
+        });
+    }
+
     endSkit(setScreenType: (type: ScreenType) => void) {
         const save = this.getSave();
         if (save.currentSkit) {
@@ -893,21 +957,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
             // Save skit to timeline first, so (most) outcomes save afterward.
             this.pushToTimeline(save, `${save.currentSkit.type} skit.`, save.currentSkit);
 
-            // If there's an endNewModule, kick off generation now:
-            if (save.currentSkit.endNewModule) {
-                const moduleData = save.currentSkit.endNewModule;
-                // Kick off module generation
-                generateModule(this.getSave().directorModule.name, this, 
-                    `This is a new module for the PARC: ${moduleData.moduleName}. This module will offer the following potential role: ${moduleData.roleName}. ${moduleData.description}\n` +
-                    this.getSave().directorModule.roleName).then(module => {
-                        if (module) {
-                            const id = generateUuid();
-                            this.getSave().customModules = { ...this.getSave().customModules, [id]: module };
-                            registerModule(id, module);
-                            this.saveGame();
-                        }
-                });
-            }
+            this.generateUncreatedModules();
 
             // Apply endProperties to actors - find from the final entry with endScene=true
             let endProps: { [actorId: string]: { [stat: string]: number } } = save.currentSkit.endProperties || {};
@@ -1012,7 +1062,11 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                             });
                         } else if (newReputation >= 5 && !faction.module) {
                             // Generate a faction module, if not present
-                            generateFactionModule(faction, this);
+                            generateFactionModule(faction, this).then(moduleName => {
+                                if (moduleName) {
+                                    this.showPriorityMessage(`New module "${moduleName}" now available!`);
+                                }
+                            });
                         }
                     });
                 // Handle special "STATION" id for station stat changes

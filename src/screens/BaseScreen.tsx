@@ -33,7 +33,12 @@ const BaseScreenContent: FC<{ stage: () => Stage }> = ({ stage }) => {
     const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
     const [screenType, setScreenType] = React.useState<ScreenType>(ScreenType.MENU);
     const [isVerticalLayout, setIsVerticalLayout] = React.useState<boolean>(stage().isVerticalLayout());
-    const { message, icon, actionCost, clearTooltip } = useTooltip();
+    const { message, icon, actionCost, clearTooltip, setPriorityMessage } = useTooltip();
+
+    // Set up the priority message callback in the stage
+    React.useEffect(() => {
+        stage().setPriorityMessageCallback(setPriorityMessage);
+    }, [setPriorityMessage]);
 
     // Update layout orientation on resize
     React.useEffect(() => {

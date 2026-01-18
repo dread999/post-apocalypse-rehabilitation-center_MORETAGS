@@ -6,6 +6,7 @@ interface TooltipContextValue {
     icon: SvgIconComponent | undefined;
     actionCost: number | undefined;
     setTooltip: (message: string | null, icon?: SvgIconComponent, actionCost?: number, expiryMs?: number) => void;
+    setPriorityMessage: (message: string, icon?: SvgIconComponent, durationMs?: number) => void;
     clearTooltip: () => void;
 }
 
@@ -22,9 +23,16 @@ export const TooltipProvider: FC<TooltipProviderProps> = ({ children }) => {
     const [message, setMessage] = useState<string | null>(null);
     const [icon, setIcon] = useState<SvgIconComponent | undefined>(undefined);
     const [actionCost, setActionCost] = useState<number | undefined>(undefined);
+    const [isPriority, setIsPriority] = useState<boolean>(false);
+    const savedTooltipRef = useRef<{message: string | null, icon?: SvgIconComponent, actionCost?: number}>({message: null});
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     const setTooltip = (newMessage: string | null, newIcon?: SvgIconComponent, newActionCost?: number, expiryMs?: number) => {
+        // Don't update if a priority message is active
+        if (isPriority) {
+            return;
+        }
+
         // Clear any existing timeout
         if (timeoutRef.current) {
             clearTimeout(timeoutRef.current);
@@ -52,7 +60,44 @@ export const TooltipProvider: FC<TooltipProviderProps> = ({ children }) => {
         }
     };
 
+    const setPriorityMessage = (priorityMessage: string, priorityIcon?: SvgIconComponent, durationMs: number = 5000) => {
+        // Clear any existing timeout
+        if (timeoutRef.current) {
+            clearTimeout(timeoutRef.current);
+            timeoutRef.current = null;
+        }
+
+        // Save the current tooltip state
+        savedTooltipRef.current = {
+            message,
+            icon,
+            actionCost
+        };
+
+        // Set priority message
+        setIsPriority(true);
+        setMessage(priorityMessage);
+        setIcon(priorityIcon);
+        setActionCost(undefined);
+
+        // Set up auto-revert after duration
+        timeoutRef.current = setTimeout(() => {
+            setIsPriority(false);
+            // Restore previous tooltip if it existed
+            const saved = savedTooltipRef.current;
+            setMessage(saved.message);
+            setIcon(saved.icon);
+            setActionCost(saved.actionCost);
+            timeoutRef.current = null;
+        }, durationMs);
+    };
+
     const clearTooltip = () => {
+        // Don't clear if a priority message is active
+        if (isPriority) {
+            return;
+        }
+
         // Clear any pending timeout
         if (timeoutRef.current) {
             clearTimeout(timeoutRef.current);
@@ -65,7 +110,7 @@ export const TooltipProvider: FC<TooltipProviderProps> = ({ children }) => {
     };
 
     return (
-        <TooltipContext.Provider value={{ message, icon, actionCost, setTooltip, clearTooltip }}>
+        <TooltipContext.Provider value={{ message, icon, actionCost, setTooltip, setPriorityMessage, clearTooltip }}>
             {children}
         </TooltipContext.Provider>
     );

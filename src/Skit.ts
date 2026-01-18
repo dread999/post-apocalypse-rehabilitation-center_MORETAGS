@@ -2,6 +2,7 @@ import Actor, { getStatDescription, findBestNameMatch, Stat, namesMatch } from "
 import { Emotion, EMOTION_MAPPING } from "./actors/Emotion";
 import { getStatRating, MODULE_TEMPLATES, STATION_STAT_PROMPTS, StationStat } from "./Module";
 import { Stage } from "./Stage";
+import { v4 as generateUuid } from 'uuid';
 
 export enum SkitType {
     BEGINNING = 'BEGINNING',
@@ -38,7 +39,7 @@ export interface SkitData {
     endProperties?: { [actorId: string]: { [stat: string]: number } }; // Stat changes to apply when scene ends
     endFactionChanges?: { [actorId: string]: string }; // Faction ID changes to apply when scene ends ('' for PARC)
     endRoleChanges?: { [actorId: string]: string }; // Role changes to apply when scene ends (role name or '' for None)
-    endNewModule?: { moduleName: string; roleName: string; description: string }; // New module to be created post-skit
+    endNewModule?: { id: string; moduleName: string; roleName: string; description: string }; // New module to be created post-skit
 }
 
 export function generateSkitTypePrompt(skit: SkitData, stage: Stage, continuing: boolean): string {
@@ -885,6 +886,7 @@ export async function generateSkitScript(skit: SkitData, wrapUp: boolean, stage:
                                         if (moduleName && roleName && description) {
                                             // Store the new module data
                                             skit.endNewModule = {
+                                                id: generateUuid(),
                                                 moduleName: moduleName,
                                                 roleName: roleName,
                                                 description: description
