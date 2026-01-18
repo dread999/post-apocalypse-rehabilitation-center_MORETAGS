@@ -11,6 +11,7 @@ import { Emotion } from "./actors/Emotion";
 import { assignActorToRole } from "./utils";
 import { z } from 'zod';
 import { CallToolResult } from '@modelcontextprotocol/sdk/types';
+import { v4 as generateUuid } from 'uuid';
 
 type MessageStateType = any;
 type ConfigType = any;
@@ -38,6 +39,7 @@ export type SaveType = {
     factions: {[key: string]: Faction};
     bannedTags?: string[];
     layout: Layout;
+    customModules?: {[key: string]: ModuleIntrinsic};
     day: number;
     turn: number;
     timeline?: Timeline;
@@ -102,6 +104,29 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
     private userId: string;
     private characterId: string;
     public isAuthenticated: boolean = false;
+    private placeholderModule = {
+        name: this.getSave().directorModule.name,
+        skitPrompt: 'Crew quarters are personal living spaces for station inhabitants. Scenes here often involve personal interactions:  revelations, troubles, interests, or relaxation.',
+        imagePrompt: 'A sci-fi living quarters with a bed, personal storage, and ambient lighting, reflecting the occupant\'s personality.',
+        baseImageUrl: 'https://media.charhub.io/5e39db53-9d66-459d-8926-281b3b089b36/8ff20bdb-b719-4cf7-bf53-3326d6f9fcaa.png', 
+        defaultImageUrl: 'https://media.charhub.io/99ffcdf5-a01b-43cf-81e5-e7098d8058f5/d1ec2e67-9124-4b8b-82d9-9685cfb973d2.png',
+        role: this.getSave().directorModule.roleName,
+        roleDescription: '',
+        cost: {
+            Wealth: 3,
+        },
+        action: 
+            (module: Module, stage: Stage, setScreenType: (type: ScreenType) => void) => {
+                stage.setSkit({
+                    type: SkitType.DIRECTOR_MODULE,
+                    moduleId: module.id,
+                    script: [],
+                    generating: true,
+                    context: {},
+                });
+                setScreenType(ScreenType.SKIT);
+            }
+    };
 
     // Expose a simple grid size (can be tuned)
     public gridWidth = DEFAULT_GRID_WIDTH;
@@ -468,30 +493,6 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
         }
 
         // Director module handling:
-        // Placeholder module:
-        const placeholderModule = {
-                name: this.getSave().directorModule.name,
-                skitPrompt: 'Crew quarters are personal living spaces for station inhabitants. Scenes here often involve personal interactions:  revelations, troubles, interests, or relaxation.',
-                imagePrompt: 'A sci-fi living quarters with a bed, personal storage, and ambient lighting, reflecting the occupant\'s personality.',
-                baseImageUrl: 'https://media.charhub.io/5e39db53-9d66-459d-8926-281b3b089b36/8ff20bdb-b719-4cf7-bf53-3326d6f9fcaa.png', 
-                defaultImageUrl: 'https://media.charhub.io/99ffcdf5-a01b-43cf-81e5-e7098d8058f5/d1ec2e67-9124-4b8b-82d9-9685cfb973d2.png',
-                role: this.getSave().directorModule.roleName,
-                roleDescription: '',
-                cost: {
-                    Wealth: 3,
-                },
-                action: 
-                    (module: Module, stage: Stage, setScreenType: (type: ScreenType) => void) => {
-                        stage.setSkit({
-                            type: SkitType.DIRECTOR_MODULE,
-                            moduleId: module.id,
-                            script: [],
-                            generating: true,
-                            context: {},
-                        });
-                        setScreenType(ScreenType.SKIT);
-                    }
-            };
         // Create default director module if missing.
         if (!this.getSave().directorModule) {
             this.getSave().directorModule = { ...this.freshSave.directorModule };
@@ -501,7 +502,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
         if (!this.getSave().directorModule.module) {
             // Register placeholder:
             registerModule('director module',
-                placeholderModule
+                this.placeholderModule
             );
 
             // Kick off director module generation
@@ -511,13 +512,13 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                 this.getSave().directorModule.roleName).then(module => {
                     if (module) {
                         this.getSave().directorModule.module = module;
-                        registerModule('director module', module, placeholderModule.action);
+                        registerModule('director module', module, this.placeholderModule.action);
                         this.saveGame();
                     }
             });
         } else {
             // Register existing director module
-            registerModule('director module', this.getSave().directorModule.module || placeholderModule, placeholderModule.action);
+            registerModule('director module', this.getSave().directorModule.module || this.placeholderModule, this.placeholderModule.action);
         }
 
         if (!this.getSave().characterArtStyle) {
@@ -560,6 +561,13 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
         idsToRemove.forEach(id => {
             delete save.actors[id];
         });
+
+        // Register custom modules:
+        if (save.customModules) {
+            Object.entries(save.customModules).forEach(([key, moduleIntrinsic]) => {
+                registerModule(key, moduleIntrinsic);
+            });
+        }
 
         // Register faction modules and repair faction reps that don't have a factionId set:
         Object.values(save.factions).forEach(faction => {
@@ -881,6 +889,22 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
             }
             // Save skit to timeline first, so (most) outcomes save afterward.
             this.pushToTimeline(save, `${save.currentSkit.type} skit.`, save.currentSkit);
+
+            // If there's an endNewModule, kick off generation now:
+            if (save.currentSkit.endNewModule) {
+                const moduleData = save.currentSkit.endNewModule;
+                // Kick off module generation
+                generateModule(this.getSave().directorModule.name, this, 
+                    `This is a new module for the PARC: ${moduleData.moduleName}. This module will offer the following potential role: ${moduleData.roleName}. ${moduleData.description || ''}\n` +
+                    this.getSave().directorModule.roleName).then(module => {
+                        if (module) {
+                            const id = generateUuid();
+                            this.getSave().customModules = { ...this.getSave().customModules, [id]: module };
+                            registerModule(id, module, this.placeholderModule.action);
+                            this.saveGame();
+                        }
+                });
+            }
 
             // Apply endProperties to actors - find from the final entry with endScene=true
             let endProps: { [actorId: string]: { [stat: string]: number } } = save.currentSkit.endProperties || {};

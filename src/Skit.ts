@@ -38,6 +38,7 @@ export interface SkitData {
     endProperties?: { [actorId: string]: { [stat: string]: number } }; // Stat changes to apply when scene ends
     endFactionChanges?: { [actorId: string]: string }; // Faction ID changes to apply when scene ends ('' for PARC)
     endRoleChanges?: { [actorId: string]: string }; // Role changes to apply when scene ends (role name or '' for None)
+    endNewModule?: { moduleName: string; roleName: string; description: string }; // New module to be created post-skit
 }
 
 export function generateSkitTypePrompt(skit: SkitData, stage: Stage, continuing: boolean): string {
@@ -741,9 +742,21 @@ export async function generateSkitScript(skit: SkitData, wrapUp: boolean, stage:
                             `These tags ensure that the gamestate location data reflects the scene's events; it is especially important to include movement tags for any characters leaving on or returning from missions; ` +
                             `remember that moving "to" a faction is an abstract location representing a task on that faction's behalf, whether that task is at the faction location or elsewhere entirely.` +
 
+                            (stage.betaMode ?
+                            `\n#New Module Definition:#\n` +
+                            `If the scene results in the conception of a new module for the station ` +
+                            `(e.g., a character requests a specific new space or a new role is being established, which requires a dedicated workspace), ` +
+                            `this tag can be used to define the proposed module name and associated role:\n` +
+                            `[NEW MODULE: <moduleName> | ROLE <roleName> | DESCRIPTION <briefDescription>]\n` +
+                            `Full Example:\n` +
+                            `[NEW MODULE: MedBay | ROLE Medic | DESCRIPTION A small medical bay equipped for basic treatments and check-ups.]\n` +
+                            `[NEW MODULE: Lounge | ROLE Social Coordinator | DESCRIPTION A comfortable lounge area for relaxation and socialization among staff and patients.]\n` +
+                            `This tag allows the game engine to create new modules dynamically based on scene events, expanding the station's capabilities and accommodating character roles as needed.\n` +
+                            '' : '') +
+
                             (!summary ? 
-                                `\n---\nSummarize Scene:\n` +
-                                `"[SUMMARY: A brief synopsis of this scene's key events.]"` +
+                                `\n#Summarize Scene:#\n` +
+                                `[SUMMARY: A brief synopsis of this scene's key events.]` +
                                 `The essential Summary tag must be used to describe the scene's key events.`
                                 : ''
                             ) +
@@ -759,7 +772,7 @@ export async function generateSkitScript(skit: SkitData, wrapUp: boolean, stage:
                         const requestAnalysis = await stage.generator.textGen({
                             prompt: analysisPrompt, // + (stage.betaMode ? '%%%TOOLS%%%\n\nMake tool calls for appropriate stat changes.\n\n' : ''),
                             min_tokens: 50,
-                            max_tokens: (summary ? 300 : 500), //stage.betaMode ? 1500 : (summary ? 300 : 500),
+                            max_tokens: (summary ? 400 : 600), //stage.betaMode ? 1500 : (summary ? 300 : 500),
                             include_history: true,
                             stop: ['[END]'],
                         });
@@ -855,6 +868,29 @@ export async function generateSkitScript(skit: SkitData, wrapUp: boolean, stage:
                                         const newRole = roleNameRaw.toUpperCase() === 'NONE' ? '' : roleNameRaw;
                                         console.log(`Adding role change for ${matchedActor?.name}: ${newRole}`);
                                         roleChanges[matchedActor.id] = newRole;
+                                    }
+                                    continue;
+                                }
+
+                                // Process NEW MODULE tags: [NEW MODULE: <moduleName> | ROLE <roleName> | DESCRIPTION <description>]
+                                if (trimmed.toUpperCase().startsWith('[NEW MODULE:')) {
+                                    console.log('Processing NEW MODULE tag:', trimmed);
+                                    const newModuleRegex = /\[NEW MODULE:\s*([^|]+)\|\s*ROLE\s+([^|]+)\|\s*DESCRIPTION\s+([^\]]+)\]/i;
+                                    const newModuleMatch = newModuleRegex.exec(trimmed);
+                                    if (newModuleMatch) {
+                                        const moduleName = newModuleMatch[1].trim();
+                                        const roleName = newModuleMatch[2].trim();
+                                        const description = newModuleMatch[3].trim();
+                                        
+                                        if (moduleName && roleName && description) {
+                                            // Store the new module data
+                                            skit.endNewModule = {
+                                                moduleName: moduleName,
+                                                roleName: roleName,
+                                                description: description
+                                            };
+                                            console.log(`Adding new module: ${moduleName} (Role: ${roleName})`);
+                                        }
                                     }
                                     continue;
                                 }

@@ -293,9 +293,10 @@ const SkitOutcomeDisplay: FC<SkitOutcomeDisplayProps> = ({ skitData, stage, layo
     const roleChanges = processRoleChanges();
     const factionChanges = processFactionChanges();
     const offStationChanges = processOffStationChanges();
+    const newModule = skitData.endNewModule;
 
     // Don't render if there's nothing to display
-    if (characterChanges.length === 0 && factionReputationChanges.length === 0 && roleChanges.length === 0 && factionChanges.length === 0 && offStationChanges.length === 0) {
+    if (characterChanges.length === 0 && factionReputationChanges.length === 0 && roleChanges.length === 0 && factionChanges.length === 0 && offStationChanges.length === 0 && !newModule) {
         return null;
     }
 
@@ -1326,6 +1327,146 @@ const SkitOutcomeDisplay: FC<SkitOutcomeDisplayProps> = ({ skitData, stage, layo
                 </div>
                 );
             })}
+
+            {/* New Module Research */}
+            {newModule && (
+                <div key="new_module">
+                    <motion.div
+                        initial={{ opacity: 0, y: 30 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.4, delay: 0.5 + characterChanges.length * 0.2 + factionReputationChanges.length * 0.2 + roleChanges.length * 0.2 + factionChanges.length * 0.2 + offStationChanges.length * 0.2 }}
+                    >
+                        <Paper
+                            elevation={6}
+                            sx={{
+                                background: 'linear-gradient(135deg, rgba(59,130,246,0.15) 0%, rgba(99,102,241,0.25) 50%, rgba(139,92,246,0.15) 100%)',
+                                border: '2px solid rgba(99,102,241,0.3)',
+                                borderRadius: 3,
+                                p: 2,
+                                backdropFilter: 'blur(8px)',
+                                textAlign: 'center',
+                                position: 'relative',
+                                overflow: 'hidden'
+                            }}
+                        >
+                            {/* Dark overlay for readability */}
+                            <Box
+                                sx={{
+                                    position: 'absolute',
+                                    top: 0,
+                                    left: 0,
+                                    right: 0,
+                                    bottom: 0,
+                                    background: 'rgba(0, 10, 20, 0.7)',
+                                    zIndex: 0
+                                }}
+                            />
+
+                            {/* Content */}
+                            <Box sx={{ position: 'relative', zIndex: 1 }}>
+                                {/* Header */}
+                                <motion.div
+                                    initial={{ scale: 0.8, opacity: 0 }}
+                                    animate={{ scale: 1, opacity: 1 }}
+                                    transition={{ duration: 0.5, delay: 0.6 + characterChanges.length * 0.2 + factionReputationChanges.length * 0.2 + roleChanges.length * 0.2 + factionChanges.length * 0.2 + offStationChanges.length * 0.2 }}
+                                    style={{ marginBottom: '12px' }}
+                                >
+                                    <Typography
+                                        variant="h6"
+                                        sx={{
+                                            fontWeight: 800,
+                                            color: '#6366f1',
+                                            textTransform: 'uppercase',
+                                            letterSpacing: '1px',
+                                            textShadow: '0 2px 4px rgba(0,0,0,0.8)'
+                                        }}
+                                    >
+                                        Researching New Module
+                                    </Typography>
+                                </motion.div>
+
+                                {/* Module Name */}
+                                <motion.div
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ duration: 0.4, delay: 0.7 + characterChanges.length * 0.2 + factionReputationChanges.length * 0.2 + roleChanges.length * 0.2 + factionChanges.length * 0.2 + offStationChanges.length * 0.2 }}
+                                    style={{ marginBottom: '12px' }}
+                                >
+                                    <Typography
+                                        sx={{
+                                            fontSize: '1.4rem',
+                                            fontWeight: 700,
+                                            color: '#fff',
+                                            textShadow: '0 2px 4px rgba(0,0,0,0.8)'
+                                        }}
+                                    >
+                                        {newModule.moduleName}
+                                    </Typography>
+                                </motion.div>
+
+                                {/* Role Badge */}
+                                <motion.div
+                                    initial={{ opacity: 0, scale: 0.8 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    transition={{ duration: 0.5, delay: 0.8 + characterChanges.length * 0.2 + factionReputationChanges.length * 0.2 + roleChanges.length * 0.2 + factionChanges.length * 0.2 + offStationChanges.length * 0.2 }}
+                                    style={{ marginBottom: '12px' }}
+                                >
+                                    <Box
+                                        sx={{
+                                            display: 'inline-block',
+                                            padding: '8px 16px',
+                                            background: 'rgba(99,102,241,0.2)',
+                                            borderRadius: '8px',
+                                            border: '1px solid rgba(99,102,241,0.4)'
+                                        }}
+                                    >
+                                        <Typography
+                                            sx={{
+                                                fontSize: '0.95rem',
+                                                fontWeight: 600,
+                                                color: '#a5b4fc',
+                                                textTransform: 'uppercase',
+                                                letterSpacing: '0.5px'
+                                            }}
+                                        >
+                                            Role: {newModule.roleName}
+                                        </Typography>
+                                    </Box>
+                                </motion.div>
+
+                                {/* Description */}
+                                <motion.div
+                                    initial={{ opacity: 0, x: -20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ duration: 0.3, delay: 0.9 + characterChanges.length * 0.2 + factionReputationChanges.length * 0.2 + roleChanges.length * 0.2 + factionChanges.length * 0.2 + offStationChanges.length * 0.2 }}
+                                >
+                                    <Box
+                                        sx={{
+                                            padding: '12px',
+                                            background: 'rgba(99,102,241,0.08)',
+                                            borderRadius: '12px',
+                                            border: '1px solid rgba(99,102,241,0.2)'
+                                        }}
+                                    >
+                                        <Typography
+                                            sx={{
+                                                fontSize: '0.95rem',
+                                                fontWeight: 500,
+                                                color: '#cbd5e1',
+                                                lineHeight: 1.6,
+                                                textAlign: 'left',
+                                                textShadow: '0 1px 2px rgba(0,0,0,0.6)'
+                                            }}
+                                        >
+                                            {newModule.description}
+                                        </Typography>
+                                    </Box>
+                                </motion.div>
+                            </Box>
+                        </Paper>
+                    </motion.div>
+                </div>
+            )}
             </Box>
         </motion.div>
     );
