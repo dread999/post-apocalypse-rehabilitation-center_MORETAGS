@@ -1,6 +1,6 @@
 import Actor, { getStatDescription, findBestNameMatch, Stat, namesMatch } from "./actors/Actor";
 import { Emotion, EMOTION_MAPPING } from "./actors/Emotion";
-import { getStatRating, MODULE_TEMPLATES, STATION_STAT_PROMPTS, StationStat } from "./Module";
+import { getStatRating, Module, MODULE_TEMPLATES, STATION_STAT_PROMPTS, StationStat } from "./Module";
 import { Stage } from "./Stage";
 import { v4 as generateUuid } from 'uuid';
 
@@ -888,6 +888,14 @@ export async function generateSkitScript(skit: SkitData, wrapUp: boolean, stage:
                                         const description = newModuleMatch[3].trim();
                                         
                                         if (moduleName && roleName && description) {
+                                            // Skip this module if the name is too similar to an existing module
+                                            const existingModules = Object.values(MODULE_TEMPLATES).map(m => ({ name: m.name }));
+                                            const similarModule = findBestNameMatch(moduleName, existingModules);
+                                            if (similarModule) {
+                                                console.log(`Detected similar existing module "${similarModule.name}" for proposed new module "${moduleName}"; skipping addition.`);
+                                                continue;
+                                            }
+
                                             // Store the new module data
                                             skit.endNewModule = {
                                                 id: generateUuid(),
