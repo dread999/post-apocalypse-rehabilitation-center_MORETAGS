@@ -620,7 +620,7 @@ export const SkitScreen: FC<SkitScreenProps> = ({ stage, setScreenType, isVertic
                 }}>
                     <ActorCard
                         actor={hoveredActor}
-                        visitingFaction={hoveredActor.isOffSite(stage().getSave()) ? stage().getSave().factions[hoveredActor.locationId] : undefined}
+                        visitingFaction={undefined /* Don't display visiting status in skits. */}
                         role={hoveredActor.getRole(stage().getSave())}
                         collapsedSections={[ActorCardSection.STATS]}
                     />

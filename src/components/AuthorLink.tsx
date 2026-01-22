@@ -39,10 +39,12 @@ export const AuthorLink: FC<AuthorLinkProps> = ({ actor, style }) => {
 				fontSize: '11px',
 				textDecoration: 'none',
 				cursor: 'pointer',
+				minWidth: 0,
+				maxWidth: '100%',
 				...style
 			}}
 		>
-			{showAuthor && <span style={{ fontWeight: 500 }}>@{author}</span>}
+			{showAuthor && <span style={{ fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>@{author}</span>}
 			{!showAuthor && <span style={{ fontWeight: 500 }}>Anonymous</span>}
 			{/* Link icon */}
 			<svg 

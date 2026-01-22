@@ -200,7 +200,7 @@ export const ActorCard: FC<ActorCardProps> = ({
                 </div>
 
                 {/* Author link at bottom - takes minimum height needed */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: '8px', flexShrink: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: '8px', flexShrink: 0, overflow: 'hidden', minWidth: 0, width: '100%' }}>
                     <AuthorLink actor={actor} />
                 </div>
             </div>

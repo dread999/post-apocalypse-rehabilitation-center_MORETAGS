@@ -867,12 +867,17 @@ export async function generateSkitScript(skit: SkitData, wrapUp: boolean, stage:
                                     // Find matching actor using findBestNameMatch
                                     const allActors = Object.values(stage.getSave().actors);
                                     const matchedActor = findBestNameMatch(characterNameRaw, allActors);
+
+                                    const currentRole = matchedActor ? matchedActor.getRole(stage.getSave()) : null;
                                     
-                                    if (matchedActor) {
-                                        // Store the role name (or empty string for 'None')
-                                        const newRole = roleNameRaw.toUpperCase() === 'NONE' ? '' : roleNameRaw;
+                                    const matchedRole = findBestNameMatch(roleNameRaw, stage.getSave().layout.getModulesWhere(m => true).map(m => ({ name: m.getAttribute('role') || '' })));
+                                    const newRole = ['NONE', 'PATIENT', 'OCCUPANT'].includes(roleNameRaw.toUpperCase()) ? '' : matchedRole?.name || '';
+
+                                    if (matchedActor && currentRole !== newRole) {
                                         console.log(`Adding role change for ${matchedActor?.name}: ${newRole}`);
                                         roleChanges[matchedActor.id] = newRole;
+                                    } else {
+                                        console.log(`Skipping role change for ${matchedActor?.name}; current role is ${currentRole}; detected new role was ${newRole}.`);
                                     }
                                     continue;
                                 }

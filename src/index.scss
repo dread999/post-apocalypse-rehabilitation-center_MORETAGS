@@ -110,8 +110,6 @@ html, body, #root {
   display: inline-block;
   padding: 0 0.2vmin;
   border-radius: 2px;
-  /* slight stroke to help separation */
-  -webkit-text-stroke: 0.6px rgba(0,0,0,0.85);
   /* crisp drop-shadow (no blur) for a sharp cutout look */
   text-shadow: clamp(2px, 0.6vmin, 4px) clamp(2px, 0.6vmin, 4px) 0 rgba(0,0,0,0.88);
   /* jaunty tilt */
