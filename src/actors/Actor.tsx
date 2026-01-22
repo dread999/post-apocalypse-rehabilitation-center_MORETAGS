@@ -444,13 +444,19 @@ export async function generateBaseActorImage(actor: Actor, stage: Stage, force: 
     // If the actor has no neutral emotion image in their emotion pack, generate one based on their description or from the existing avatar image
     if (!actor.emotionPack['neutral'] || force) {
         console.log(`Generating neutral emotion image for actor ${actor.name}`);
+        // Want to clear in-progress stuff if forcing
+        if (force) {
+            actor.emotionPack = {};
+            delete stage.imageGenerationPromises[`actor/${actor.id}`];
+        }
         let imageUrl = '';
+        
         if (!actor.avatarImageUrl || !fromAvatar) {
             console.log(`Generating new image for actor ${actor.name} from description`);
             // Use stage.makeImage to create a neutral expression based on the description
             imageUrl = await stage.makeImage({
                 prompt: (`${((stage.getSave().characterArtStyle || 'original') === 'original') ? 'Illustrate this character in a hyperrealistic anime visual novel style' : ART_PROMPT[stage.getSave().characterArtStyle || 'original']}: ` +
-                    `${actor.description}\nThe character should have a neutral expression. Maintain a margin of negative space over their head/hair.`)
+                    `${actor.description}. Create a waist-up portrait of this character with a neutral expression and pose, placed on a light gray background. `)
                     .replace('{{ARTIST}}', stage.getSave().characterArtist || 'some professional'),
                 aspect_ratio: AspectRatio.PHOTO_VERTICAL
             }, '');
@@ -459,7 +465,8 @@ export async function generateBaseActorImage(actor: Actor, stage: Stage, force: 
         // Use stage.makeImageFromImage to create a base image.
         imageUrl = await stage.makeImageFromImage({
             image: imageUrl || actor.avatarImageUrl,
-            prompt: `${ART_PROMPT[stage.getSave().characterArtStyle || 'original']}. Crop to a waist-up portrait of this character (${actor.description}) with a neutral expression and pose. Place them on a light gray background with a negative-space margin at the top of the image.`
+            prompt: (`${ART_PROMPT[stage.getSave().characterArtStyle || 'original']}. Create a waist-up portrait of this character: ${actor.description}. Give them a neutral expression and pose and place them on a light gray background. ` +
+                `Regardless of the description, zoom and crop the image at their waist, but maintain a margin of negative space over their head/hair.`)
                 .replace('{{ARTIST}}', stage.getSave().characterArtist || 'some professional'),
             remove_background: true,
             transfer_type: 'edit'
