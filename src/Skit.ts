@@ -502,6 +502,9 @@ export async function generateSkitScript(skit: SkitData, wrapUp: boolean, stage:
                 let endScene = false;
                 let summary = undefined;
 
+                // Strip double-asterisks. TODO: Remove this once other model issue is resolved.
+                text = text.replace(/\*\*/g, '');
+
                 // Remove any initial "System:" prefix
                 if (text.toLowerCase().startsWith('system:')) {
                     text = text.slice(7).trim();
@@ -788,7 +791,8 @@ export async function generateSkitScript(skit: SkitData, wrapUp: boolean, stage:
                             // Process analysisText for stat changes
                             const lines = analysisText.split('\n');
                             for (const line of lines) {
-                                const trimmed = line.trim();
+                                // Strip double-asterisks. TODO: Remove replace() (keep trim()) once other model issue is resolved.
+                                const trimmed = line.replace(/\*\*/g, '').trim();
                                 if (!trimmed || !trimmed.startsWith('[')) continue;
 
                                 if (trimmed.toUpperCase().startsWith('[SUMMARY:')) {
