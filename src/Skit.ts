@@ -238,7 +238,7 @@ function processMovementTag(rawTag: string, stage: Stage, skit: SkitData): { act
         } else {
             console.warn(`Could not find quarters owner: ${quartersOwnerName}`);
         }
-    } else if (destinationName.toLowerCase().endsWith('quarters')) {
+    } else if (destinationName.toLowerCase().endsWith('quarters') || ['home', 'their room', 'another module', 'elsewhere'].includes(destinationName.toLowerCase())) {
         // Character's own quarters (if they have any)
         const ownQuarters = stage.getLayout().getModulesWhere(m => 
             m.type === 'quarters' && m.ownerId === matched.id
