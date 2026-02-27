@@ -24,6 +24,7 @@ interface SettingsData {
     characterArtStyle: ArtStyle;
     characterArtist: string;
     tagToggles: { [key: string]: boolean };
+    writeInTags: string[]; // write-in banned tags (not part of tagMap)
     language: string;
 }
 
@@ -62,7 +63,6 @@ export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onCon
         'Original Character': ['Original Character', 'OC', 'Original'],
         'Tsundere': ['Tsundere'],
         'Yandere': ['Yandere'],
-        'Virgin': ['Virgin'],
         'Submissive': ['Submissive', 'Sub'],
         'Dominant': ['Dominant', 'Dom'],
         'Sadistic': ['Sadistic', 'Sadism'],
@@ -79,37 +79,58 @@ export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onCon
         'Size Difference': ['Size Difference'],
         'Fantasy': ['Fantasy'],
         'Sci-Fi': ['Sci-Fi', 'Science Fiction'],
-        'Romance': ['Romance', 'Love', 'Drama'],
-        'NTR': ['NTR', 'Cuckold', 'Cheating', 'Infidelity', 'Affair', 'Netori', 'Netorare'],
+        'Romance': ['Romance', 'Love', 'Drama']
+    }
+
+    // Build initial tag toggles and write-in tags from save
+    const saveFromStage = stage().getSave();
+    const initialTagToggles = Object.keys(tagMap).reduce((acc, key) => ({ ...acc, [key]: true }), {} as { [key: string]: boolean });
+    const initialWriteIns: string[] = [];
+
+    if (saveFromStage?.bannedTags && Array.isArray(saveFromStage.bannedTags)) {
+        for (const banned of saveFromStage.bannedTags) {
+            let matched = false;
+            for (const [key, arr] of Object.entries(tagMap)) {
+                if (arr.includes(banned)) {
+                    initialTagToggles[key] = false; // ban the mapped key
+                    matched = true;
+                    break;
+                }
+            }
+            if (!matched) {
+                // This is a write-in tag that doesn't match any mapped tags
+                initialWriteIns.push(banned);
+            }
+        }
     }
 
     // Load existing settings or use defaults
     const [settings, setSettings] = useState<SettingsData>({
-        playerName: stage().getSave().player?.name || 'Director',
-        playerDescription: stage().getSave().player?.description || 'The PARC\'s enigmatic Director is the station\'s sole authority.',
-        aideName: stage().getSave().aide?.name || 'Soji',
-        aideDescription: stage().getSave().aide?.description || 
+        playerName: saveFromStage.player?.name || 'Director',
+        playerDescription: saveFromStage.player?.description || 'The PARC\'s enigmatic Director is the station\'s sole authority.',
+        aideName: saveFromStage.aide?.name || 'Soji',
+        aideDescription: saveFromStage.aide?.description ||
             (`Your holographic aide is acutely familiar with the technical details of your Post-Apocalypse Rehabilitation Center, so you don't have to be! ` +
             `Your StationAide™ comes pre-programmed with a friendly and non-condescending demeanor that will leave you feeling empowered but never patronized; ` +
             `your bespoke projection comes with an industry-leading feminine form in a pleasing shade of default blue, but, as always, StationAide™ remains infinitely customizable to suit your tastes.\n\n` +
             `StationAide™. "When life gives you space stations..."`),
-        directorModuleName: stage().getSave().directorModule?.name || 'Director\'s Cabin',
-        directorModuleRoleName: stage().getSave().directorModule?.roleName || 'Maid',
-        disableTextToSpeech: stage().getSave().disableTextToSpeech ?? false,
-        disableEmotionImages: stage().getSave().disableEmotionImages ?? false,
-        characterArtStyle: stage().getSave().characterArtStyle ?? 'original',
-        characterArtist: stage().getSave().characterArtist ?? '',
-        language: stage().getSave().language || 'English',
+        directorModuleName: saveFromStage.directorModule?.name || 'Director\'s Cabin',
+        directorModuleRoleName: saveFromStage.directorModule?.roleName || 'Maid',
+        disableTextToSpeech: saveFromStage.disableTextToSpeech ?? false,
+        disableEmotionImages: saveFromStage.disableEmotionImages ?? false,
+        characterArtStyle: saveFromStage.characterArtStyle ?? 'original',
+        characterArtist: saveFromStage.characterArtist ?? '',
+        language: saveFromStage.language || 'English',
         // Tag toggles; disabling these can be used to filter undesired content. Load from save array, if one. Otherwise, default to true.
-        tagToggles: stage().getSave().bannedTags ? Object.fromEntries(
-            Object.keys(tagMap).map(key => [
-                key, !stage().getSave().bannedTags?.some(bannedTag => tagMap[key].includes(bannedTag))
-            ])
-        ) : Object.keys(tagMap).reduce((acc, key) => ({...acc, [key]: true}), {})
+        tagToggles: initialTagToggles,
+        writeInTags: initialWriteIns
     });
 
     const [languageSuggestions, setLanguageSuggestions] = useState<string[]>([]);
     const [showLanguageSuggestions, setShowLanguageSuggestions] = useState(false);
+
+    // new-writein input
+    const [newWriteIn, setNewWriteIn] = useState('');
 
     const handleSave = () => {
         console.log('Saving settings:', settings);
@@ -126,7 +147,15 @@ export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onCon
         save.directorModule.name = settings.directorModuleName;
         save.directorModule.roleName = settings.directorModuleRoleName;
 
-        save.bannedTags = Object.keys(settings.tagToggles).filter(key => !settings.tagToggles[key]).map(key => tagMap[key] ? tagMap[key] : [key]).flat();
+        // Build bannedTags from toggles (mapped arrays) and write-in tags, deduplicated
+        const mappedBans = Object.keys(settings.tagToggles)
+            .filter(key => !settings.tagToggles[key])
+            .map(key => tagMap[key] ? tagMap[key] : [key])
+            .flat();
+
+        const writeIns = settings.writeInTags ? settings.writeInTags.filter(Boolean) : [];
+
+        save.bannedTags = Array.from(new Set([...mappedBans, ...writeIns]));
         save.disableTextToSpeech = settings.disableTextToSpeech;
         save.disableEmotionImages = settings.disableEmotionImages;
         save.characterArtStyle = settings.characterArtStyle;
@@ -173,6 +202,30 @@ export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onCon
     const selectLanguage = (language: string) => {
         setSettings(prev => ({ ...prev, language }));
         setShowLanguageSuggestions(false);
+    };
+
+    // Write-in handlers
+    const addWriteInTag = (tag: string) => {
+        const trimmed = tag.trim();
+        if (!trimmed) return;
+        // don't add duplicates (either existing writeIns or tags covered by tagMap)
+        const already = settings.writeInTags.some(t => t.toLowerCase() === trimmed.toLowerCase());
+        const coveredByMap = Object.values(tagMap).some(arr => arr.some(v => v.toLowerCase() === trimmed.toLowerCase()));
+        if (already || coveredByMap) {
+            setNewWriteIn('');
+            return;
+        }
+        setSettings(prev => ({ ...prev, writeInTags: [...prev.writeInTags, trimmed] }));
+        setNewWriteIn('');
+    };
+
+    const updateWriteInTag = (index: number, value: string) => {
+        const trimmed = value; // allow editing; handle empty removal on blur elsewhere
+        setSettings(prev => ({ ...prev, writeInTags: prev.writeInTags.map((t, i) => i === index ? trimmed : t) }));
+    };
+
+    const removeWriteInTag = (index: number) => {
+        setSettings(prev => ({ ...prev, writeInTags: prev.writeInTags.filter((_, i) => i !== index) }));
     };
 
     return (
@@ -803,6 +856,116 @@ export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onCon
                                             </span>
                                         </motion.div>
                                     ))}
+
+                                    {/* Existing write-in tags (editable) */}
+                                    {stage().betaMode && settings.writeInTags.map((tag, idx) => (
+                                        <motion.div
+                                            key={`writein-${idx}`}
+                                            whileHover={{ scale: 1.02 }}
+                                            whileTap={{ scale: 0.98 }}
+                                            style={{
+                                                padding: '8px',
+                                                background: 'rgba(0, 20, 40, 0.7)',
+                                                border: '2px solid rgba(255, 255, 255, 0.1)',
+                                                borderRadius: '8px',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '8px',
+                                            }}
+                                        >
+                                            <div style={{
+                                                width: '20px',
+                                                height: '20px',
+                                                borderRadius: '4px',
+                                                background: '#ff6b6b',
+                                                color: '#200',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                fontWeight: 'bold',
+                                                flexShrink: 0,
+                                            }}>×</div>
+                                            <input
+                                                value={tag}
+                                                onChange={(e) => updateWriteInTag(idx, e.target.value)}
+                                                onBlur={() => {
+                                                    // remove if emptied
+                                                    if (!settings.writeInTags[idx]?.trim()) {
+                                                        removeWriteInTag(idx);
+                                                    }
+                                                }}
+                                                style={{
+                                                    background: 'transparent',
+                                                    border: 'none',
+                                                    color: 'rgba(255,255,255,0.9)',
+                                                    outline: 'none',
+                                                    fontSize: '13px',
+                                                    width: '100%'
+                                                }}
+                                            />
+                                            <button
+                                                onClick={() => removeWriteInTag(idx)}
+                                                style={{
+                                                    background: 'transparent',
+                                                    border: 'none',
+                                                    color: 'rgba(255,255,255,0.6)',
+                                                    cursor: 'pointer'
+                                                }}
+                                                aria-label={`Remove write-in tag ${tag}`}
+                                            >
+                                                ✕
+                                            </button>
+                                        </motion.div>
+                                    ))}
+
+                                    {/* New write-in input (always present as trailing blank) */}
+                                    {stage().betaMode && <motion.div
+                                        key="writein-new"
+                                        whileHover={{ scale: 1.02 }}
+                                        whileTap={{ scale: 0.98 }}
+                                        style={{
+                                            padding: '8px',
+                                            background: 'rgba(0, 20, 40, 0.7)',
+                                            border: '2px dashed rgba(255, 255, 255, 0.08)',
+                                            borderRadius: '8px',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '8px',
+                                        }}
+                                    >
+                                        <div style={{
+                                            width: '20px',
+                                            height: '20px',
+                                            borderRadius: '4px',
+                                            background: '#ff6b6b',
+                                            color: '#200',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            fontWeight: 'bold',
+                                            flexShrink: 0,
+                                        }}>×</div>
+                                        <input
+                                            placeholder="Add custom banned tag..."
+                                            value={newWriteIn}
+                                            onChange={(e) => setNewWriteIn(e.target.value)}
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter') {
+                                                    e.preventDefault();
+                                                    addWriteInTag(newWriteIn);
+                                                }
+                                            }}
+                                            onBlur={() => addWriteInTag(newWriteIn)}
+                                            style={{
+                                                background: 'transparent',
+                                                border: 'none',
+                                                color: 'rgba(255,255,255,0.6)',
+                                                outline: 'none',
+                                                fontSize: '13px',
+                                                width: '100%'
+                                            }}
+                                        />
+                                    </motion.div>}
                                 </div>
                             </div>
 

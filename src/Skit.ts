@@ -568,11 +568,21 @@ export async function generateSkitScript(skit: SkitData, wrapUp: boolean, stage:
                             if (emotionName in Emotion) {
                                 finalEmotion = emotionName as Emotion;
                                 console.log(`Recognized standard emotion "${finalEmotion}" for ${matched.name}`);
-                            } else if (emotionName in EMOTION_MAPPING) {
-                                finalEmotion = EMOTION_MAPPING[emotionName];
-                                console.log(`Mapped non-standard emotion "${emotionName}" to "${finalEmotion}" for ${matched.name}`);
                             } else {
-                                console.warn(`Unrecognized emotion "${emotionName}" for ${matched.name}; skipping tag.`);
+                                // Try to map emotion using EMOTION_SYNONYMS if not a standard emotion
+                                let finalEmotion: Emotion | undefined;
+                                if (emotionName in Emotion) {
+                                    finalEmotion = emotionName as Emotion;
+                                    console.log(`Recognized standard emotion "${finalEmotion}" for ${matched.name}`);
+                                } else {
+                                    const closestEmotion = findBestNameMatch(emotionName, Object.keys(EMOTION_MAPPING).map(e => ({ name: e })));
+                                    if (closestEmotion) {
+                                        console.warn(`Non-standard emotion "${emotionName}" for ${matched.name} is being mapped to emotion "${closestEmotion.name}".`);
+                                        finalEmotion = EMOTION_MAPPING[closestEmotion.name];
+                                    } else {
+                                        console.warn(`Unrecognized emotion "${emotionName}" for ${matched.name} and no close match found; skipping tag.`);
+                                    }
+                                }
                             }
                             
                             if (!finalEmotion) continue;

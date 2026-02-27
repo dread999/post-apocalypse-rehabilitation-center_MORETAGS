@@ -282,7 +282,7 @@ export const MenuScreen: FC<MenuScreenProps> = ({ stage, setScreenType }) => {
                     }}
                 >
                     {stage().isAuthenticated 
-                        ? 'v2026.02.16 - Adjustments for ongoing Soji stuff.'
+                        ? 'v2026.02.27 - Emotion detection improvement. Testing some additional features.'
                         : (
                             <>
                                 This is an unofficial bot; for the latest version for PARC, visit:{' '}
