@@ -22,7 +22,7 @@ export const FactionDetailScreen: FC<FactionDetailScreenProps> = ({ faction, sta
         themeColor: string;
         themeFont: string;
         reputation: number;
-        active: boolean;
+        cutTies: boolean;
         backgroundImageUrl: string;
         // Module fields (if exists)
         moduleName: string;
@@ -40,7 +40,7 @@ export const FactionDetailScreen: FC<FactionDetailScreenProps> = ({ faction, sta
         themeColor: faction.themeColor,
         themeFont: faction.themeFont,
         reputation: faction.reputation,
-        active: faction.active,
+        cutTies: (!faction.active && faction.reputation <= 0) || false,
         backgroundImageUrl: faction.backgroundImageUrl,
         // Module data
         moduleName: faction.module?.name || '',
@@ -74,11 +74,13 @@ export const FactionDetailScreen: FC<FactionDetailScreenProps> = ({ faction, sta
         faction.themeColor = editedFaction.themeColor;
         faction.themeFont = editedFaction.themeFont;
         faction.reputation = editedFaction.reputation;
-        if (!faction.active && editedFaction.active) {
-            // If activating, set reputation to 0 if it was -1 (cut-ties)
-            faction.reputation = faction.reputation === -1 ? 0 : faction.reputation;
+        if (!faction.active && faction.reputation < 0 && !editedFaction.cutTies) {
+            faction.reputation = 1;
+            faction.active = true;
+        } else if (faction.reputation >= 0 && editedFaction.cutTies) {
+            faction.reputation = -1;
+            faction.active = false;
         }
-        faction.active = editedFaction.active;
         faction.backgroundImageUrl = editedFaction.backgroundImageUrl;
 
         // Update module if it exists
@@ -300,7 +302,7 @@ export const FactionDetailScreen: FC<FactionDetailScreenProps> = ({ faction, sta
                                         />
                                     </div>
 
-                                    {/* Active toggle */}
+                                    {/* cut-ties toggle */}
                                     <div>
                                         <label
                                             style={{
@@ -316,12 +318,12 @@ export const FactionDetailScreen: FC<FactionDetailScreenProps> = ({ faction, sta
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                                             <input
                                                 type="checkbox"
-                                                checked={!!editedFaction.active}
-                                                onChange={(e) => handleInputChange('active', e.target.checked)}
-                                                id="faction-active-toggle"
+                                                checked={!editedFaction.cutTies}
+                                                onChange={(e) => handleInputChange('cutTies', e.target.checked)}
+                                                id="faction-cutTies-toggle"
                                             />
-                                            <label htmlFor="faction-active-toggle" style={{ color: '#e0f0ff', fontSize: '14px' }}>
-                                                {editedFaction.active ? 'Active' : 'Inactive'}
+                                            <label htmlFor="faction-cutTies-toggle" style={{ color: '#e0f0ff', fontSize: '14px' }}>
+                                                {!editedFaction.cutTies ? 'Active' : 'Deactivated'}
                                             </label>
                                         </div>
                                     </div>
