@@ -319,7 +319,7 @@ export const FactionDetailScreen: FC<FactionDetailScreenProps> = ({ faction, sta
                                             <input
                                                 type="checkbox"
                                                 checked={!editedFaction.cutTies}
-                                                onChange={(e) => handleInputChange('cutTies', e.target.checked)}
+                                                onChange={(e) => handleInputChange('cutTies', !e.target.checked)}
                                                 id="faction-cutTies-toggle"
                                             />
                                             <label htmlFor="faction-cutTies-toggle" style={{ color: '#e0f0ff', fontSize: '14px' }}>
