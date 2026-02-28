@@ -422,7 +422,12 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
         // Update timestamp on current save
         this.currentSave.timestamp = Date.now();
         this.saves[this.saveSlot] = this.currentSave;
-        this.messenger.updateChatState(this.buildSaves());
+        const builtSaves = this.buildSaves();
+        if (builtSaves.saves.some(save => save)) {
+            void this.messenger.updateChatState(builtSaves);
+        } else {
+            console.warn('No saves to update in chat state; skipping messenger update.');
+        }
         // Persist to storage API
        /* this.storage.set(`saveData_${this.saveSlot}`, this.currentSave).forUser().then(() => {
             console.log(`Saved game to slot ${this.saveSlot} in storage API.`)
