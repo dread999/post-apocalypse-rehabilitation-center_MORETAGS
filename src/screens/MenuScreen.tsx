@@ -282,7 +282,7 @@ export const MenuScreen: FC<MenuScreenProps> = ({ stage, setScreenType }) => {
                     }}
                 >
                     {stage().isAuthenticated 
-                        ? 'v2026.02.27 - Emotion detection improvement. Write-in tag bans.'
+                        ? 'v2026.03.02 - Scene ending and movement detection changes.'
                         : (
                             <>
                                 This is an unofficial bot; for the latest version for PARC, visit:{' '}

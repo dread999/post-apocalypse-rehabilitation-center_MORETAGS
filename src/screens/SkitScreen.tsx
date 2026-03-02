@@ -1119,27 +1119,6 @@ export const SkitScreen: FC<SkitScreenProps> = ({ stage, setScreenType, isVertic
                     >
                         {sceneEnded && !inputText.trim() ? 'End' : (inputText.trim() ? 'Send' : 'Continue')}
                     </Button>
-                    <IconButton
-                        onClick={handleWrapUp}
-                        disabled={loading || (index < 6)}
-                        onMouseEnter={(e) => setTooltip('Wrap up the current scene.')}
-                        onMouseLeave={clearTooltip}
-                        sx={{
-                            background: 'linear-gradient(90deg,#00ff88,#00b38f)',
-                            color: '#00221a',
-                            padding: isVerticalLayout ? '4px' : '6px',
-                            borderRadius: '4px',
-                            '&:hover': {
-                                background: 'linear-gradient(90deg,#00e67a,#009a7b)',
-                            },
-                            '&:disabled': {
-                                background: 'rgba(255,255,255,0.04)',
-                                color: 'rgba(255,255,255,0.3)',
-                            }
-                        }}
-                    >
-                        <CardGiftcard fontSize={isVerticalLayout ? 'small' : 'medium'} />
-                    </IconButton>
                 </Box>
             </Paper>
             </div>
@@ -1218,13 +1197,8 @@ export const SkitScreen: FC<SkitScreenProps> = ({ stage, setScreenType, isVertic
         });
     }
     
-    // Handle wrap up - signals the AI to bring the scene to a close
-    function handleWrapUp() {
-        handleSubmit(true);
-    }
-    
     // Handle submission of player's guidance (or blank submit to continue the scene autonomously)
-    function handleSubmit(wrapUp: boolean = false) {
+    function handleSubmit() {
         // Confirm any pending edits before submitting
         if (isEditingMessage) {
             handleConfirmEdit();
@@ -1255,7 +1229,7 @@ export const SkitScreen: FC<SkitScreenProps> = ({ stage, setScreenType, isVertic
         }
         setInputText('');
         const oldIndex = stageSkit.script.length;
-        stage().continueSkit(wrapUp).then(() => {
+        stage().continueSkit().then(() => {
             const newIndex = Math.min(oldIndex, (stage().getSave().currentSkit?.script.length || 1) - 1);
             const skitData = stage().getSave().currentSkit;
             setSkit({...skitData as SkitData});
