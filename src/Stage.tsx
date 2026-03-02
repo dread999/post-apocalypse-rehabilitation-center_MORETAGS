@@ -207,7 +207,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
         }
         this.currentSave = this.saves[this.saveSlot] || this.getFreshSave();
 
-        if (this.betaMode) {
+        /*if (this.betaMode) {
 
             console.log('Registering tools.');
             this.mcp.registerTool('modify-station-stat',
@@ -246,7 +246,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                     return { content: [{type: 'text', text: `Actor ${actor}'s stat ${stat} changed by ${change}.` }] };
                 }
             );
-        }
+        }*/
         
     }
 
