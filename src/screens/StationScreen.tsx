@@ -548,19 +548,9 @@ export const StationScreen: FC<StationScreenProps> = ({stage, setScreenType, isV
     // Helper function to determine if a module is interactable
     const isModuleInteractable = (module: Module | null): boolean => {
         if (!module) return false;
-        
-        // Check if there's at least one actor present
-        const hasActors = Object.values(stage().getSave().actors).some(a => a.locationId === module.id);
-        if (hasActors) return true;
-        
-        // Check if quarters has an owner
-        if (module.type === 'quarters' && module.ownerId && !stage().getSave().actors[module.ownerId].isOffSite(stage().getSave())) return true;
-        
-        // Check for rooms with dedicated screens
-        const dedicatedScreenRooms = ['echo chamber', 'cryo bank', 'aperture', 'director module'];
-        if (dedicatedScreenRooms.includes(module.type)) return true;
-        
-        return false;
+
+        // Any module with an action (including generic fallback actions) is interactable.
+        return !!module.getAction();
     };
 
     const renderGrid = () => {

@@ -1,9 +1,9 @@
-import React, { FC, useState } from 'react';
+import { FC, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 import { Stage } from '../Stage';
-import Actor, { Stat, ACTOR_STAT_ICONS, getStatDescription, generateBaseActorImage, generateEmotionImage, generateActorDecor, VOICE_MAP } from '../actors/Actor';
-import { Emotion, EMOTION_PROMPTS } from '../actors/Emotion';
+import Actor, { Stat, ACTOR_STAT_ICONS, generateBaseActorImage, generateEmotionImage, generateActorDecor, VOICE_MAP } from '../actors/Actor';
+import { Emotion } from '../actors/Emotion';
 import { GlassPanel, Title, Button, TextInput, Chip } from '../components/UIComponents';
 import { Close, Save, Image as ImageIcon } from '@mui/icons-material';
 import { scoreToGrade } from '../utils';
@@ -39,6 +39,13 @@ export const ActorDetailScreen: FC<ActorDetailScreenProps> = ({ actor, stage, on
     const [isSaving, setIsSaving] = useState(false);
     const [regeneratingImages, setRegeneratingImages] = useState<Set<string>>(new Set());
     const [, forceUpdate] = useState({});
+    const emotionUploadInputRef = useRef<HTMLInputElement>(null);
+    const [emotionDialog, setEmotionDialog] = useState<{
+        open: boolean;
+        emotion: Emotion | null;
+    }>({ open: false, emotion: null });
+    const [isEmotionDropActive, setIsEmotionDropActive] = useState(false);
+    const [isUploadingEmotionImage, setIsUploadingEmotionImage] = useState(false);
     const [confirmDialog, setConfirmDialog] = useState<{
         open: boolean;
         title: string;
@@ -103,6 +110,45 @@ export const ActorDetailScreen: FC<ActorDetailScreenProps> = ({ actor, stage, on
                 }
             }
         });
+    };
+
+    const handleOpenEmotionDialog = (emotion: Emotion) => {
+        setEmotionDialog({ open: true, emotion });
+        setIsEmotionDropActive(false);
+    };
+
+    const handleCloseEmotionDialog = () => {
+        setEmotionDialog({ open: false, emotion: null });
+        setIsEmotionDropActive(false);
+    };
+
+    const handleEmotionImageFile = async (file: File, emotion: Emotion) => {
+        if (!file.type.startsWith('image/')) {
+            alert('Please select a valid image file.');
+            return;
+        }
+
+        setIsUploadingEmotionImage(true);
+        try {
+            const dataUrl = await new Promise<string>((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result as string);
+                reader.onerror = () => reject(new Error('Failed to read image file.'));
+                reader.readAsDataURL(file);
+            });
+
+            actor.emotionPack[emotion] = dataUrl;
+            stage().saveGame();
+            forceUpdate({});
+        } catch (error) {
+            console.error(`Failed to upload ${emotion} emotion image:`, error);
+            alert(`Failed to upload ${emotion} emotion image. Check console for details.`);
+        } finally {
+            setIsUploadingEmotionImage(false);
+            if (emotionUploadInputRef.current) {
+                emotionUploadInputRef.current.value = '';
+            }
+        }
     };
 
     const handleRegenerateBase = async () => {
@@ -747,7 +793,7 @@ export const ActorDetailScreen: FC<ActorDetailScreenProps> = ({ actor, stage, on
                                                 key={emotion}
                                                 whileHover={{ scale: 1.05 }}
                                                 whileTap={{ scale: 0.95 }}
-                                                onClick={() => handleRegenerateEmotion(emotion)}
+                                                onClick={() => handleOpenEmotionDialog(emotion)}
                                                 style={{
                                                     display: 'flex',
                                                     flexDirection: 'column',
@@ -969,16 +1015,187 @@ export const ActorDetailScreen: FC<ActorDetailScreenProps> = ({ actor, stage, on
 
             {/* Confirmation Dialog */}
             <Dialog
+                open={emotionDialog.open}
+                onClose={handleCloseEmotionDialog}
+                slotProps={{
+                    paper: {
+                        style: {
+                            backgroundColor: 'rgba(0, 20, 40, 0.95)',
+                            backdropFilter: 'blur(10px)',
+                            border: '2px solid rgba(0, 255, 136, 0.3)',
+                            borderRadius: '8px',
+                            color: '#e0f0ff',
+                            minWidth: '700px',
+                            maxWidth: '900px',
+                        }
+                    }
+                }}
+            >
+                <DialogTitle style={{
+                    color: '#00ff88',
+                    fontSize: '18px',
+                    fontWeight: 'bold',
+                    borderBottom: '2px solid rgba(0, 255, 136, 0.3)',
+                    paddingBottom: '10px',
+                    textTransform: 'capitalize'
+                }}>
+                    Manage {emotionDialog.emotion || ''} Image
+                </DialogTitle>
+                <DialogContent style={{ paddingTop: '20px' }}>
+                    <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: '1fr 1fr',
+                        gap: '20px',
+                        alignItems: 'start'
+                    }}>
+                        <div>
+                            <input
+                                ref={emotionUploadInputRef}
+                                type="file"
+                                accept="image/*"
+                                style={{ display: 'none' }}
+                                onChange={(e) => {
+                                    const emotion = emotionDialog.emotion;
+                                    const file = e.target.files?.[0];
+                                    if (!emotion || !file) return;
+                                    handleEmotionImageFile(file, emotion);
+                                }}
+                            />
+                            <div
+                                onClick={() => emotionUploadInputRef.current?.click()}
+                                onDragOver={(e) => {
+                                    e.preventDefault();
+                                    setIsEmotionDropActive(true);
+                                }}
+                                onDragEnter={(e) => {
+                                    e.preventDefault();
+                                    setIsEmotionDropActive(true);
+                                }}
+                                onDragLeave={(e) => {
+                                    e.preventDefault();
+                                    setIsEmotionDropActive(false);
+                                }}
+                                onDrop={(e) => {
+                                    e.preventDefault();
+                                    setIsEmotionDropActive(false);
+                                    const emotion = emotionDialog.emotion;
+                                    const file = e.dataTransfer.files?.[0];
+                                    if (!emotion || !file) return;
+                                    handleEmotionImageFile(file, emotion);
+                                }}
+                                style={{
+                                    width: '100%',
+                                    minHeight: '300px',
+                                    backgroundColor: emotionDialog.emotion && actor.emotionPack[emotionDialog.emotion] ? 'transparent' : 'rgba(0, 20, 40, 0.6)',
+                                    border: `2px dashed ${isEmotionDropActive ? 'rgba(0, 255, 136, 0.8)' : 'rgba(0, 255, 136, 0.35)'}`,
+                                    borderRadius: '8px',
+                                    backgroundImage: emotionDialog.emotion && actor.emotionPack[emotionDialog.emotion] ? `url(${actor.emotionPack[emotionDialog.emotion]})` : 'none',
+                                    backgroundSize: 'contain',
+                                    backgroundPosition: 'center',
+                                    backgroundRepeat: 'no-repeat',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    cursor: 'pointer',
+                                    position: 'relative',
+                                    overflow: 'hidden',
+                                }}
+                            >
+                                {(!emotionDialog.emotion || !actor.emotionPack[emotionDialog.emotion]) && (
+                                    <div style={{
+                                        color: 'rgba(0, 255, 136, 0.5)',
+                                        fontSize: '14px',
+                                        textAlign: 'center',
+                                        padding: '16px',
+                                        lineHeight: 1.5,
+                                    }}>
+                                        Click to upload image
+                                        <br />
+                                        or drag and drop here
+                                    </div>
+                                )}
+
+                                {isEmotionDropActive && (
+                                    <div style={{
+                                        position: 'absolute',
+                                        top: 0,
+                                        left: 0,
+                                        right: 0,
+                                        bottom: 0,
+                                        backgroundColor: 'rgba(0, 255, 136, 0.2)',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        color: '#00ff88',
+                                        fontSize: '16px',
+                                        fontWeight: 'bold',
+                                    }}>
+                                        Drop to Replace
+                                    </div>
+                                )}
+
+                                {isUploadingEmotionImage && (
+                                    <div style={{
+                                        position: 'absolute',
+                                        top: 0,
+                                        left: 0,
+                                        right: 0,
+                                        bottom: 0,
+                                        backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        color: '#00ff88',
+                                        fontSize: '14px',
+                                        fontWeight: 'bold',
+                                    }}>
+                                        Uploading...
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                            <div style={{
+                                color: '#e0f0ff',
+                                fontSize: '14px',
+                                lineHeight: 1.6,
+                            }}>
+                                Click the image area to select a file, or drag and drop an image to replace the current emotion image.
+                            </div>
+                            <Button
+                                onClick={() => {
+                                    if (!emotionDialog.emotion) return;
+                                    handleRegenerateEmotion(emotionDialog.emotion);
+                                }}
+                                disabled={!emotionDialog.emotion || regeneratingImages.has(emotionDialog.emotion)}
+                                style={{ alignSelf: 'flex-start' }}
+                            >
+                                {emotionDialog.emotion && regeneratingImages.has(emotionDialog.emotion) ? 'Generating...' : 'Regenerate Image'}
+                            </Button>
+                        </div>
+                    </div>
+                </DialogContent>
+                <DialogActions style={{ padding: '15px 20px' }}>
+                    <Button onClick={handleCloseEmotionDialog} variant="secondary">
+                        Close
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            <Dialog
                 open={confirmDialog.open}
                 onClose={() => setConfirmDialog(prev => ({ ...prev, open: false }))}
-                PaperProps={{
-                    style: {
-                        backgroundColor: 'rgba(0, 20, 40, 0.95)',
-                        backdropFilter: 'blur(10px)',
-                        border: '2px solid rgba(0, 255, 136, 0.3)',
-                        borderRadius: '8px',
-                        color: '#e0f0ff',
-                        minWidth: '400px',
+                slotProps={{
+                    paper: {
+                        style: {
+                            backgroundColor: 'rgba(0, 20, 40, 0.95)',
+                            backdropFilter: 'blur(10px)',
+                            border: '2px solid rgba(0, 255, 136, 0.3)',
+                            borderRadius: '8px',
+                            color: '#e0f0ff',
+                            minWidth: '400px',
+                        }
                     }
                 }}
             >

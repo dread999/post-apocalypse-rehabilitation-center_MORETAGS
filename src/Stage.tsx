@@ -9,9 +9,6 @@ import { generateSkitScript, SkitData, SkitType, updateCharacterArc } from "./Sk
 import { smartRehydrate } from "./SaveRehydration";
 import { Emotion } from "./actors/Emotion";
 import { assignActorToRole } from "./utils";
-import { z } from 'zod';
-import { CallToolResult } from '@modelcontextprotocol/sdk/types';
-import { v4 as generateUuid } from 'uuid';
 
 type MessageStateType = any;
 type ConfigType = any;

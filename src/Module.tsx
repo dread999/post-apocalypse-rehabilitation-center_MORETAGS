@@ -475,7 +475,7 @@ export class Module<T extends ModuleType = ModuleType> {
      * Get the action method for this module type
      */
     getAction(): ((module: Module, stage: Stage, setScreenType: (type: ScreenType) => void) => void) | undefined {
-        return MODULE_TEMPLATES[this.type]?.action;
+        return MODULE_TEMPLATES[this.type]?.action || randomAction;
     }
 }
 

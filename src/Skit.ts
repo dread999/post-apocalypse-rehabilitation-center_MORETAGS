@@ -25,6 +25,7 @@ export interface ScriptEntry {
     actorEmotions?: {[key: string]: Emotion}; // actor name -> emotion string
     endScene?: boolean; // Whether this entry marks the end of the scene
     movements?: {[actorId: string]: string}; // actor ID -> new module ID
+    moveToModuleId?: string; // Optional ID of a module that the scene moves to as of this entry.
 }
 
 export interface SkitData {
@@ -158,6 +159,25 @@ function buildScriptLog(skit: SkitData, additionalEntries: ScriptEntry[] = []): 
 }
 
 /**
+ * Resolve the current scene module ID at a point in the script.
+ * @param skit - The skit data
+ * @param upToIndex - Process entries up to (but not including) this index. -1 means process all.
+ */
+function getCurrentSceneModuleId(skit: SkitData, upToIndex: number = -1): string {
+    let currentSceneModuleId = skit.moduleId;
+    const endIndex = Math.min(skit.script.length, upToIndex === -1 ? skit.script.length : upToIndex);
+
+    for (let i = 0; i < endIndex; i++) {
+        const entry = skit.script[i];
+        if (entry?.moveToModuleId) {
+            currentSceneModuleId = entry.moveToModuleId;
+        }
+    }
+
+    return currentSceneModuleId;
+}
+
+/**
  * Helper function to determine the current set of actors present in a module at a given script index.
  * Walks through the script from the beginning, applying movement changes.
  * @param skit - The skit data
@@ -166,7 +186,7 @@ function buildScriptLog(skit: SkitData, additionalEntries: ScriptEntry[] = []): 
  * @returns Set of actor IDs currently present in the module
  */
 function getCurrentActorsInScene(skit: SkitData, moduleId?: string, upToIndex: number = -1): Set<string> {
-    const targetModuleId = moduleId || skit.moduleId;
+    const targetModuleId = moduleId || getCurrentSceneModuleId(skit, upToIndex);
     // Start with initial actor locations
     const currentLocations = {...(skit.initialActorLocations || {})};
     const endIndex = Math.min(skit.script.length, upToIndex === -1 ? skit.script.length : upToIndex);
@@ -193,13 +213,54 @@ function getCurrentActorsInScene(skit: SkitData, moduleId?: string, upToIndex: n
 }
 
 /**
+ * Build a map of actorId -> current location at a point in the script.
+ */
+function getCurrentActorLocations(skit: SkitData, upToIndex: number = -1): {[actorId: string]: string} {
+    const currentLocations = {...(skit.initialActorLocations || {})};
+    const endIndex = Math.min(skit.script.length, upToIndex === -1 ? skit.script.length : upToIndex);
+
+    for (let i = 0; i < endIndex; i++) {
+        const entry = skit.script[i];
+        if (entry?.movements) {
+            Object.entries(entry.movements).forEach(([actorId, newLocationId]) => {
+                currentLocations[actorId] = newLocationId;
+            });
+        }
+    }
+
+    return currentLocations;
+}
+
+function processSceneMovementTag(rawTag: string, stage: Stage): string | null {
+    const sceneMovementRegex = /^SCENE\s+MOVES\s+to\s+(.+)$/i;
+    const sceneMovementMatch = sceneMovementRegex.exec(rawTag);
+    if (!sceneMovementMatch) return null;
+
+    const destinationName = sceneMovementMatch[1].trim();
+    const modules = stage.getLayout().getModulesWhere(m => !!m.getAttribute('name'));
+    const modulesWithName = modules.map(m => ({
+        name: `${m.getAttribute('name') || ''} ${m.type}`.trim(),
+        module: m
+    }));
+    const targetModuleMatch = findBestNameMatch(destinationName, modulesWithName);
+
+    if (!targetModuleMatch) {
+        console.warn(`Could not find module matching scene move destination: ${destinationName}`);
+        return null;
+    }
+
+    console.log(`Scene movement detected: scene moves to ${targetModuleMatch.module.getAttribute('name')} (${targetModuleMatch.module.id})`);
+    return targetModuleMatch.module.id;
+}
+
+/**
  * Process a movement tag and return the destination module/faction ID if valid.
  * @param rawTag - The raw tag content (without brackets)
  * @param stage - The Stage object for accessing save data and layout
  * @param skit - The current skit data
  * @returns An object with actorId and destinationId, or null if invalid
  */
-function processMovementTag(rawTag: string, stage: Stage, skit: SkitData): { actorId: string; destinationId: string } | null {
+function processMovementTag(rawTag: string, stage: Stage, skit: SkitData, currentSceneModuleId?: string): { actorId: string; destinationId: string } | null {
     // Look for movement tags: [Character Name moves to Module Name]
     const movementRegex = /^([^[\]]+?)\s+moves\s+to\s+(.+)$/i;
     const movementMatch = movementRegex.exec(rawTag);
@@ -250,7 +311,7 @@ function processMovementTag(rawTag: string, stage: Stage, skit: SkitData): { act
         }
     } else if (['here', 'this module', 'this location', 'this area', 'current module'].includes(destinationName.toLowerCase())) {
         // Move to current skit module
-        destinationModuleId = skit.moduleId || '';
+        destinationModuleId = currentSceneModuleId || getCurrentSceneModuleId(skit, -1) || skit.moduleId || '';
     } else {
         // Try to find a module by type name
         // Use findBestNameMatch:
@@ -302,7 +363,8 @@ export function generateSkitPrompt(skit: SkitData, stage: Stage, historyLength: 
     }
 
     // Determine present and absent actors for this moment in the skit (as of the last entry in skit.script):
-    const presentActorIds = getCurrentActorsInScene(skit, skit.moduleId, -1);
+    const currentSceneModuleId = getCurrentSceneModuleId(skit, -1);
+    const presentActorIds = getCurrentActorsInScene(skit, currentSceneModuleId, -1);
     const presentPatients = Object.values(save.actors).filter(a => presentActorIds.has(a.id) && !a.factionId);
     const absentPatients = Object.values(save.actors).filter(a => !presentActorIds.has(a.id) && !a.factionId && save.aide.actorId != a.id && a.locationId != 'cryo' && !a.isOffSite(save));
     const cryoPatients = Object.values(save.actors).filter(a => a.locationId === 'cryo' && !a.factionId);
@@ -318,7 +380,7 @@ export function generateSkitPrompt(skit: SkitData, stage: Stage, historyLength: 
 
     let pastEvents = save.timeline || [];
     pastEvents = pastEvents.filter((v, index) => index > (pastEvents.length || 0) - historyLength);
-    const module = save.layout.getModuleById(skit.moduleId || '');
+    const module = save.layout.getModuleById(currentSceneModuleId || '');
     const moduleOwner = module?.ownerId ? save.actors[module.ownerId] : null;
     const faction = skit.context.factionId ? save.factions[skit.context.factionId] : null;
     const factionRepresentative = faction ? save.actors[faction.representativeId || ''] : null;
@@ -350,7 +412,7 @@ export function generateSkitPrompt(skit: SkitData, stage: Stage, historyLength: 
                 m && m.type !== 'quarters' && m.ownerId === actor.id
             )[0];
             const module = save.layout.getModuleById(actor.locationId);
-            const locationString = module ? (module.type === 'quarters' ? (module.ownerId === actor.id ? ' Their Quarters' : (`${save.actors[module.ownerId || ''] || 'Someone'}'s Quarters`)) : module.getAttribute('name')) : 'Unknown'
+            const locationString = module ? (module.type === 'quarters' ? (module.ownerId === actor.id ? ' Their Quarters' : (`${save.actors[module.ownerId || ''] || 'Someone'}'s Quarters`)) : module.getAttribute('name')) : 'Unknown';
             return `  ${actor.name}\n    Description: ${actor.description}\n    Profile: ${actor.profile}\n    Role: ${roleModule?.getAttribute('role') || 'Patient'}\n    Location: ${locationString}`;
         }).join('\n')}` +
         // List away characters for reference; just need description and profile:
@@ -460,10 +522,12 @@ export async function generateSkitScript(skit: SkitData, stage: Stage): Promise<
                 `\n\n  A Character movement tag ("[CHARACTER NAME moves to LOCATION]") must be used when an Absent Character enters the scene. ` +
                 `\n\n  Character movement tags ("[CHARACTER NAME moves to LOCATION]") must also be included when a character leaves the scene or moves to a different module on the station. ` +
                 `\n\n  Character movement tags ("[CHARACTER NAME moves to LOCATION]") are also used to move a character to another faction, abstractly representing any faction mission or time away. ` +
+                `\n\n  A Scene movement tag ("[SCENE MOVES to MODULE NAME]") may be used when the scene itself transitions to another module. ` +
+                `When this tag is used, all characters currently present in the scene are treated as relocating together. ` +
                 `\n\n  For all Character movement tags, LOCATION should be the name of an existing module type (e.g., 'comms', 'infirmary', 'lounge'), a character's quarters (e.g., 'Susan's quarters' or just 'quarters' for their own), or simply "Here" to move to the scene's location or "Another module" to leave this area. ` +
                 `If a faction name is used for the LOCATION, it indicates that the character is departing from the PARC itself, typically to visit a faction or engage in a mission or job on that faction's behalf (use the faction name as the location, even when the job is not "at" the faction). ` +
-                `The game engine relies upon Character movement tags to update character locations and visually display character presence in scenes, so it is essential to use these tags when Absent Characters enter the scene or Present Characters leave. ` +
-                `The scene itself cannot transition to a new area. These tags are not presented to users, so the content of the script should also mention characters entering or exiting the scene. ` +
+                `The game engine relies upon movement tags to update character locations and visually display character presence in scenes, so it is essential to use these tags when Absent Characters enter the scene, Present Characters leave, or the scene itself relocates. ` +
+                `These tags are not presented to users, so the narrative content of the script should also organically mention characters entering, exiting, or relocating. ` +
                 `\n\nThis scene is a brief visual novel skit within a video game; as such, the scene avoids major developments which would fundamentally alter the mechanics or nature of the game, ` +
                 `instead developing content within the existing rules. ` +
                 `As a result, avoid timelines or concrete, countable values throughout the skit, using vague durations or amounts for upcoming events; the game's mechanics may by unable to map directly to what is depicted in the skit, so ambiguity is preferred. ` +
@@ -496,10 +560,14 @@ export async function generateSkitScript(skit: SkitData, stage: Stage): Promise<
                 // Parse response based on format "NAME: content"; content could be multi-line. We want to ensure that lines that don't start with a name are appended to the previous line.
                 const lines = text.split('\n');
                 const combinedLines: string[] = [];
-                const combinedEmotionTags: {emotions: {[key: string]: Emotion}, movements: {[actorId: string]: string}}[] = [];
+                const combinedEmotionTags: {emotions: {[key: string]: Emotion}, movements: {[actorId: string]: string}, moveToModuleId?: string}[] = [];
                 let currentLine = '';
                 let currentEmotionTags: {[key: string]: Emotion} = {};
                 let currentMovements: {[actorId: string]: string} = {};
+                let currentSceneMoveToModuleId: string | undefined;
+
+                let parsedSceneModuleId = getCurrentSceneModuleId(skit, -1);
+                const parsedCurrentLocations = getCurrentActorLocations(skit, -1);
                 for (const line of lines) {
                     // Skip empty lines
                     let trimmed = line.trim();
@@ -509,6 +577,7 @@ export async function generateSkitScript(skit: SkitData, stage: Stage): Promise<
 
                     const newEmotionTags: {[key: string]: Emotion} = {};
                     const newMovements: {[actorId: string]: string} = {};
+                    let newSceneMoveToModuleId: string | undefined;
 
                     // Prepare list of all actors (not just present)
                     const allActors: Actor[] = Object.values(stage.getSave().actors);
@@ -520,10 +589,27 @@ export async function generateSkitScript(skit: SkitData, stage: Stage): Promise<
 
                         console.log(`Processing tag: ${raw}`);
                         
+                        const sceneMoveModuleId = processSceneMovementTag(raw, stage);
+                        if (sceneMoveModuleId) {
+                            // Move every actor currently present in the active scene module.
+                            Object.entries(parsedCurrentLocations).forEach(([actorId, locationId]) => {
+                                if (locationId === parsedSceneModuleId) {
+                                    newMovements[actorId] = sceneMoveModuleId;
+                                }
+                            });
+                            newSceneMoveToModuleId = sceneMoveModuleId;
+                            Object.keys(newMovements).forEach(actorId => {
+                                parsedCurrentLocations[actorId] = sceneMoveModuleId;
+                            });
+                            parsedSceneModuleId = sceneMoveModuleId;
+                            continue;
+                        }
+
                         // Process movement tags using the shared function
-                        const movementResult = processMovementTag(raw, stage, skit);
+                        const movementResult = processMovementTag(raw, stage, skit, parsedSceneModuleId);
                         if (movementResult) {
                             newMovements[movementResult.actorId] = movementResult.destinationId;
+                            parsedCurrentLocations[movementResult.actorId] = movementResult.destinationId;
                             continue;
                         }
                         
@@ -566,24 +652,28 @@ export async function generateSkitScript(skit: SkitData, stage: Stage): Promise<
                             combinedLines.push(currentLine.trim());
                             combinedEmotionTags.push({
                                 emotions: currentEmotionTags,
-                                movements: currentMovements
+                                movements: currentMovements,
+                                moveToModuleId: currentSceneMoveToModuleId
                             });
                         }
                         currentLine = trimmed;
                         currentEmotionTags = newEmotionTags;
                         currentMovements = newMovements;
+                        currentSceneMoveToModuleId = newSceneMoveToModuleId;
                     } else {
                         // Continuation of previous line
                         currentLine += '\n' + trimmed;
                         currentEmotionTags = {...currentEmotionTags, ...newEmotionTags};
                         currentMovements = {...currentMovements, ...newMovements};
+                        currentSceneMoveToModuleId = newSceneMoveToModuleId || currentSceneMoveToModuleId;
                     }
                 }
                 if (currentLine) {
                     combinedLines.push(currentLine.trim());
                     combinedEmotionTags.push({
                         emotions: currentEmotionTags,
-                        movements: currentMovements
+                        movements: currentMovements,
+                        moveToModuleId: currentSceneMoveToModuleId
                     });
                 }
 
@@ -610,6 +700,9 @@ export async function generateSkitScript(skit: SkitData, stage: Stage): Promise<
                     if (tagData.movements && Object.keys(tagData.movements).length > 0) {
                         entry.movements = tagData.movements;
                     }
+                    if (tagData.moveToModuleId) {
+                        entry.moveToModuleId = tagData.moveToModuleId;
+                    }
                     
                     return entry;
                 });
@@ -628,8 +721,7 @@ export async function generateSkitScript(skit: SkitData, stage: Stage): Promise<
                         continue;
                     }
                     // Adjust speaker name to match actor name if possible
-                    const presentActors = Object.values(stage.getSave().actors).filter(a => a.locationId === (skit.moduleId || ''));
-                    const matched = findBestNameMatch(entry.speaker, presentActors);
+                    const matched = findBestNameMatch(entry.speaker, Object.values(stage.getSave().actors));
                     if (matched) {
                         entry.speaker = matched.name;
                     }
@@ -958,7 +1050,8 @@ export async function generateSkitScript(skit: SkitData, stage: Stage): Promise<
                                     } else {
                                         // Character stat changes
                                         // Find matching present actor using findBestNameMatch
-                                        const presentActors: Actor[] = Object.values(stage.getSave().actors).filter(a => a.locationId === (skit.moduleId || ''));
+                                        const currentSceneModuleForAnalysis = getCurrentSceneModuleId(skit, -1);
+                                        const presentActors: Actor[] = Object.values(stage.getSave().actors).filter(a => a.locationId === (currentSceneModuleForAnalysis || skit.moduleId || ''));
                                         const matched = findBestNameMatch(target, presentActors);
                                         if (!matched) continue;
 

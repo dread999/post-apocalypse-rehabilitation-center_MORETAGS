@@ -258,8 +258,25 @@ interface SkitScreenProps {
 }
 
 /**
+ * Helper function to get the active scene module ID at a given script index.
+ * Applies scene-level module transitions up to and including the index.
+ */
+const getSceneModuleIdAtIndex = (skit: SkitData, scriptIndex: number): string => {
+    let sceneModuleId = skit.moduleId;
+
+    for (let i = 0; i <= scriptIndex && i < skit.script.length; i++) {
+        const entry = skit.script[i];
+        if (entry.moveToModuleId) {
+            sceneModuleId = entry.moveToModuleId;
+        }
+    }
+
+    return sceneModuleId;
+};
+
+/**
  * Helper function to get the actors present in the scene at a given script index.
- * Walks through movements from initialActorLocations, filtering by skit's moduleId.
+ * Walks through movements from initialActorLocations, filtering by scene module at index.
  */
 const getActorsAtIndex = (skit: SkitData, scriptIndex: number, allActors: {[key: string]: Actor}): Actor[] => {
     // Start with initial actor locations
@@ -275,10 +292,12 @@ const getActorsAtIndex = (skit: SkitData, scriptIndex: number, allActors: {[key:
         }
     }
     
+    const sceneModuleId = getSceneModuleIdAtIndex(skit, scriptIndex);
+
     // Filter actors who are at the skit's module
     const actorsAtModule: Actor[] = [];
     Object.entries(currentLocations).forEach(([actorId, locationId]) => {
-        if (locationId === skit.moduleId && allActors[actorId]) {
+        if (locationId === sceneModuleId && allActors[actorId]) {
             actorsAtModule.push(allActors[actorId]);
         }
     });
@@ -585,7 +604,8 @@ export const SkitScreen: FC<SkitScreenProps> = ({ stage, setScreenType, isVertic
 
 
 
-    const module = stage().getSave().layout.getModuleById(skit.moduleId || '');
+    const currentSceneModuleId = getSceneModuleIdAtIndex(skit, index);
+    const module = stage().getSave().layout.getModuleById(currentSceneModuleId || '');
     const decorImageUrl = module ? stage().getSave().actors[module.ownerId || '']?.decorImageUrls[module.type] || module.getAttribute('defaultImageUrl') : '';
 
     return (
@@ -600,7 +620,7 @@ export const SkitScreen: FC<SkitScreenProps> = ({ stage, setScreenType, isVertic
 
             {/* Actors */}
             <div style={{ position: 'absolute', inset: 0, zIndex: 1 }}>
-                {renderActors(stage().getSave().layout.getModuleById(skit.moduleId || ''), getActorsAtIndex(skit, index, stage().getSave().actors), skit.script && skit.script.length > 0 ? skit.script[index]?.speaker : undefined)}
+                {renderActors(module, getActorsAtIndex(skit, index, stage().getSave().actors), skit.script && skit.script.length > 0 ? skit.script[index]?.speaker : undefined)}
             </div>
 
             {/* Skit Outcome Display - shown when scene ends */}
