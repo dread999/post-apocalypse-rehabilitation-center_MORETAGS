@@ -132,7 +132,13 @@ export const ActorDetailScreen: FC<ActorDetailScreenProps> = ({ actor, stage, on
         try {
             const dataUrl = await new Promise<string>((resolve, reject) => {
                 const reader = new FileReader();
-                reader.onload = () => resolve(reader.result as string);
+                reader.onload = () => {
+                    stage().uploadFile(`${actor.id}-${emotion}.png`, file).then((url: string) => {
+                        resolve(url);
+                    }).catch(() => {
+                        reject(new Error("Failed to upload image."));
+                    });
+                };
                 reader.onerror = () => reject(new Error('Failed to read image file.'));
                 reader.readAsDataURL(file);
             });

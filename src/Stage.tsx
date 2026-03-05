@@ -1089,6 +1089,21 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
         return;
     }
 
+    async uploadBlob(fileName: string, blob: Blob, propertyBag: BlobPropertyBag): Promise<string> {
+        // Depth URL is the HF URL; back it up to Chub by creating a File from the image data:
+        const file: File = new File([blob], fileName, propertyBag);
+        return this.uploadFile(fileName, file);
+    }
+
+    async uploadFile(fileName: string, file: File): Promise<string> {
+        // Don't honor filename; want to overwrite existing content that may have had a different actual name.
+        const updateResponse = await this.storage.set(fileName, file).forUser();
+        if (!updateResponse.data || updateResponse.data.length == 0) {
+            throw new Error('Failed to upload file to storage.');
+        }
+        return updateResponse.data[0].value;
+    }
+
     pushToTimeline(save: SaveType, description: string, skit: SkitData | null = null) {
         if (!save.timeline) {
             save.timeline = [];
