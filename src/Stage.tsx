@@ -69,7 +69,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
     readonly PREGEN_FACTION_COUNT = 3;
     readonly MAX_FACTIONS = 5;
     readonly FETCH_AT_TIME = 10;
-    readonly MAX_PAGES = 100;
+    readonly MAX_PAGES = 200;
     readonly bannedTagsDefault = [
         'FUZZ',
         'child',
@@ -699,7 +699,12 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                     console.log(searchResults);
                     // Need to do a secondary lookup for each character in searchResults, to get the details we actually care about:
                     const basicCharacterData = searchResults.data?.nodes.filter((item: string, index: number) => index < this.RESERVE_ACTORS - reserveActors.length).map((item: any) => item.fullPath) || [];
-                    this.actorPageNumber = (this.actorPageNumber % this.MAX_PAGES) + 1;
+                    if (searchResults.data?.nodes.length === 0) {
+                        console.warn('No more characters found from search results; resetting page number to 1 to retry with the same parameters.');
+                        this.actorPageNumber = 1;
+                    } else {
+                        this.actorPageNumber = (this.actorPageNumber % this.MAX_PAGES) + 1;
+                    }
                     console.log(basicCharacterData);
 
                     const newActors: Actor[] = await Promise.all(basicCharacterData.map(async (fullPath: string) => {
