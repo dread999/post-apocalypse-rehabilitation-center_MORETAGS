@@ -26,9 +26,11 @@ interface SettingsData {
     tagToggles: { [key: string]: boolean };
     writeInTags: string[]; // write-in banned tags (not part of tagMap)
     language: string;
+    tone: string;
 }
 
 export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onConfirm, isNewGame = false }) => {
+    const CUSTOM_TONE_KEY = 'Custom';
 
     // Common languages for autocomplete
     const commonLanguages = [
@@ -84,6 +86,21 @@ export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onCon
 
     // Build initial tag toggles and write-in tags from save
     const saveFromStage = stage().getSave();
+    const toneMap = stage().TONE_MAP;
+    const toneEntries = Object.entries(toneMap);
+
+    const getTonePresetFromValue = (toneValue?: string): string => {
+        if (!toneValue) {
+            return 'Original';
+        }
+
+        const match = toneEntries.find(([, value]) => value === toneValue);
+        return match ? match[0] : CUSTOM_TONE_KEY;
+    };
+
+    const initialTonePreset = getTonePresetFromValue(saveFromStage.tone);
+    const initialTone = saveFromStage.tone || toneMap['Original'];
+
     const initialTagToggles = Object.keys(tagMap).reduce((acc, key) => ({ ...acc, [key]: true }), {} as { [key: string]: boolean });
     const initialWriteIns: string[] = [];
 
@@ -121,10 +138,12 @@ export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onCon
         characterArtStyle: saveFromStage.characterArtStyle ?? 'original',
         characterArtist: saveFromStage.characterArtist ?? '',
         language: saveFromStage.language || 'English',
+        tone: initialTone,
         // Tag toggles; disabling these can be used to filter undesired content. Load from save array, if one. Otherwise, default to true.
         tagToggles: initialTagToggles,
         writeInTags: initialWriteIns
     });
+    const [selectedTonePreset, setSelectedTonePreset] = useState<string>(initialTonePreset);
 
     const [languageSuggestions, setLanguageSuggestions] = useState<string[]>([]);
     const [showLanguageSuggestions, setShowLanguageSuggestions] = useState(false);
@@ -161,6 +180,7 @@ export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onCon
         save.characterArtStyle = settings.characterArtStyle;
         save.characterArtist = settings.characterArtist;
         save.language = settings.language;
+        save.tone = settings.tone;
 
         stage().saveGame();
         onConfirm();
@@ -202,6 +222,19 @@ export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onCon
     const selectLanguage = (language: string) => {
         setSettings(prev => ({ ...prev, language }));
         setShowLanguageSuggestions(false);
+    };
+
+    const handleTonePresetChange = (preset: string) => {
+        setSelectedTonePreset(preset);
+
+        if (preset !== CUSTOM_TONE_KEY && toneMap[preset]) {
+            setSettings(prev => ({ ...prev, tone: toneMap[preset] }));
+        }
+    };
+
+    const handleToneChange = (tone: string) => {
+        setSelectedTonePreset(CUSTOM_TONE_KEY);
+        setSettings(prev => ({ ...prev, tone }));
     };
 
     // Write-in handlers
@@ -771,6 +804,61 @@ export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onCon
                                                 )}
                                             </AnimatePresence>
                                         </div>
+                                    </div>
+
+                                    {/* Narrative Tone Controls */}
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                        <label
+                                            htmlFor="tone-preset-select"
+                                            style={{
+                                                color: 'rgba(255, 255, 255, 0.8)',
+                                                fontSize: '12px',
+                                                fontWeight: 'bold',
+                                            }}
+                                        >
+                                            Narrative Tone
+                                        </label>
+
+                                        <select
+                                            id="tone-preset-select"
+                                            value={selectedTonePreset}
+                                            onChange={(e) => handleTonePresetChange(e.target.value)}
+                                            style={{
+                                                padding: '10px',
+                                                background: 'rgba(0, 20, 40, 0.7)',
+                                                border: '2px solid rgba(0, 255, 136, 0.3)',
+                                                borderRadius: '8px',
+                                                color: '#00ff88',
+                                                fontSize: '13px',
+                                                fontWeight: 'bold',
+                                                cursor: 'pointer',
+                                                outline: 'none',
+                                                transition: 'all 0.2s ease',
+                                            }}
+                                        >
+                                            {toneEntries.map(([key]) => (
+                                                <option key={key} value={key} style={{ background: '#001520', color: '#00ff88' }}>
+                                                    {key}
+                                                </option>
+                                            ))}
+                                            <option value={CUSTOM_TONE_KEY} style={{ background: '#001520', color: '#00ff88' }}>
+                                                {CUSTOM_TONE_KEY}
+                                            </option>
+                                        </select>
+
+                                        <textarea
+                                            className="text-input-primary"
+                                            value={settings.tone}
+                                            onChange={(e) => handleToneChange(e.target.value)}
+                                            placeholder="Enter narrative tone instructions..."
+                                            rows={5}
+                                            style={{
+                                                width: '100%',
+                                                padding: '12px',
+                                                fontSize: '13px',
+                                                resize: 'vertical',
+                                            }}
+                                        />
                                     </div>
                                 </div>
                             </div>

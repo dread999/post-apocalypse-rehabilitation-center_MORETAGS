@@ -297,6 +297,7 @@ export async function loadReserveActor(data: any, stage: Stage): Promise<Actor|n
             `with the goal of placing these characters into a new role in this universe. These new roles are offered by external factions, generally in exchange for a finder's fee or reputation boost. ` +
             `Some roles are above board, while others may involve morally ambiguous or covert activities; some may even be illicit or compulsary. ` +
             `The player's motives and ethics are open-ended; they may be benevolent or self-serving, and the characters they interact with may respond accordingly. ` +
+            `\n\nNarrative Tone:\n${stage.getSave().tone || stage.TONE_MAP['Original']}` +
             `\n\nThe Original Details below describe a character or scenario (${data.name}) from another universe. This request and response must digest and distill these details to suit the game's narrative scenario, ` +
             `crafting a character who has been rematerialized into this universe through an "echo chamber," their essence reconstituted from the whispers of a black hole. ` +
             `As a result of this process, many of this character's traits may have changed, including the loss of most supernatural or arcane abilities, which functioned only within the rules of their former universe. ` +

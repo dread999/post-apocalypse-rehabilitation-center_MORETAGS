@@ -135,6 +135,7 @@ export async function loadReserveFaction(fullPath: string, stage: Stage): Promis
             `with the goal of placing these characters into a new role in this universe. These new roles are offered by external factions, generally in exchange for a finder's fee or reputation boost. ` +
             `Some roles are above board, while others may involve morally ambiguous or covert activities; many may even be illicit, sexual, or compulsory (essentially human trafficking). ` +
             `The player's motives and ethics are open-ended; they may be benevolent or self-serving, and the characters they interact with may respond accordingly. ` +
+            `\n\nNarrative Tone:\n${stage.getSave().tone || stage.TONE_MAP['Original']}` +
             (Object.values(stage.getSave().factions).length > 0 ? `\n\nEstablished Factions:\n${Object.values(stage.getSave().factions).map(faction => `- ${faction.name}: ${faction.description}. Representative: ${stage.getSave().actors[faction.representativeId || '']}`).join('\n')}` : '') +
             `\n\nThe Original Details below describe a character, faction, organization, or setting (${data.name}) from another universe. ` +
             `This request and response must digest and distill these details into a new faction that suits the game's narrative scenario, ` +
@@ -274,8 +275,9 @@ export async function generateFactionModule(faction: Faction, stage: Stage): Pro
             `Faction Aesthetic: ${faction.visualStyle}\n\n` +
             `Background: This game is a futuristic multiverse setting that pulls characters from across eras and timelines and settings. ` +
             `The player of this game, ${stage.getSave().player.name}, manages a space station called the Post-Apocalypse Rehabilitation Center, or PARC, which resurrects victims of a multiversal calamity and helps them adapt to a new life, ` +
-            `with the goal of placing these characters into a new role in this universe. ` +
-            `Modules are rooms and facilities that make up the station; each module has a function varying between utility and entertainment or anything inbetween, and serve as a backdrop for various interactions and events. ` +
+            `with the goal of placing these characters into a new role in this universe.` +
+            `\n\nNarrative Tone:\n${stage.getSave().tone || stage.TONE_MAP['Original']}` +
+            `\n\nModules:\nModules are rooms and facilities that make up the station; each module has a function varying between utility and entertainment or anything inbetween, and serve as a backdrop for various interactions and events. ` +
             `Each of the game's factions can offer the player a unique module to unlock for their station, generally following the themes of that faction, while avoiding content that is too similar to the Existing Modules. ` +
             `Every module similarly offers a crew-assignable role with an associated responsibility or purpose, which can again vary wildly between practical and whimsical.\n\n` +
             `Instructions: After carefully considering this faction's description, generate a formatted definition for a distinct and inspired station module that reflects the faction's aesthetic and values in the following strict format:\n` +

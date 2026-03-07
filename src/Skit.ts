@@ -392,6 +392,7 @@ export function generateSkitPrompt(skit: SkitData, stage: Stage, historyLength: 
         `The PARC is an isolated station near a black hole, from which it pulls and reconsitutes the echoes of apocalypse victims. It serves as both sanctuary and containment for its diverse inhabitants, who hail from various alternate realities. ` +
         `${playerName} is the only non-patient aboard the station (although they may hire patients on as crew or staff); as a result, the station may feel a bit lonely or alienating at times. ` +
         `Much of the day-to-day maintenance and operation of the station is automated by the station's AI, ${save.aide.name || 'StationAide™'}, and various drones, enabling ${playerName} to focus on patient care and rehabilitation.` +
+        `\n\nNarrative Tone:\n${save.tone || stage.TONE_MAP['Original']}` +
         (save.stationStats ? (
             `\n\nThe PARC's current stats and impacts:\n` +
             Object.values(StationStat).map(stat => `  ${stat} (${save.stationStats?.[stat] || 3}): ${STATION_STAT_PROMPTS[stat][getStatRating(save.stationStats?.[stat] || 3)]}`).join('\n')

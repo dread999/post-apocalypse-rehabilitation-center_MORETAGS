@@ -50,6 +50,7 @@ export type SaveType = {
     attenuation?: string;
     reserveActors?: Actor[];
     language?: string;
+    tone?: string;
 }
 
 export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateType, ConfigType> {
@@ -94,6 +95,16 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
         `&require_expressions=false&require_lore=false&mine_first=false&require_lore_embedded=false&require_lore_linked=false&my_favorites=false&inclusive_or=true&recommended_verified=false&count=false&min_tags=3`;
     readonly characterDetailQuery = 'https://inference.chub.ai/api/characters/{fullPath}?full=true';
 
+    readonly TONE_MAP: {[key: string]: string} = {
+        'Original': 'The universe is a wild and evocative kaleidoscope, rich in diverse characters and organizations. ' +
+            'Stories set in this universe can vary widely in tone—from lighthearted and humorous to dark and introspective—, but generally emphasize slice-of-life dramedy as patients navigate unlikely relationships and personal journeys.',
+        'Gritty': 'The universe is a harsh and unforgiving landscape where survival is a constant struggle. ' +
+            'Stories set in this universe tend to be dark and intense, with high stakes and morally complex characters. Themes of sacrifice, resilience, and the human spirit prevailing against all odds are common.',
+        'Humorous': 'The universe is a whimsical and absurd place, where the bizarre and unexpected are commonplace. ' +
+            'Stories set in this universe are lighthearted and comedic, often featuring eccentric characters and ridiculous situations. The tone is irreverent and playful, with a focus on humor and satire.',
+        'Romantic': 'The universe is a lush and passionate realm, where love and desire are powerful forces that shape the lives of its inhabitants. ' +
+            'Stories set in this universe are emotionally charged and erotic, often exploring complex relationships and intense emotions. The tone is sensual and evocative, with a focus on romance and interpersonal connections.',
+    };
 
     private actorPageNumber = Math.floor(Math.random() * this.MAX_PAGES);
     private factionPageNumber = Math.floor(Math.random() * this.MAX_PAGES);
