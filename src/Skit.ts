@@ -511,8 +511,9 @@ export async function generateSkitScript(skit: SkitData, stage: Stage): Promise<
                 `Current Scene Script Log to Continue:\n${buildScriptLog(skit)}` +
                 `\n\nPrimary Instruction:\n` +
                 `  ${skit.script.length == 0 ? 'Produce the initial moments of a scene (perhaps joined in medias res)' : 'Extend or conclude the current scene script'} with three to five entries, ` +
-                `based upon the Premise and the specified Scene Prompt. Primarily involve the Present Characters, although Absent Characters may be moved to this location using appropriate tags. ` +
-                `The script should consider characters' stats, relationships, past events, and the station's stats—among other factors—to craft a compelling scene. ` +
+                `based upon the Premise and the specified Scene Prompt. Primarily involve the Present Characters, although Absent Characters may be moved to this location using appropriate tags, if warranted. ` +
+                `The script should tacitly consider characters' stats, relationships, past events, and the station's stats—among other factors—to craft a compelling scene. ` +
+                `Ensure the Narrative Tone is reflected in the nature of scene and writing. ` +
                 `\n\n  Follow the structure of the strict Example Script formatting above: ` +
                 `actions are depicted in prose and character dialogue in quotation marks. Characters present their own actions and dialogue, while other events within the scene are attributed to NARRATOR. ` +
                 `Although a loose script format is employed, the actual content should be professionally edited narrative prose. ` +
@@ -531,8 +532,8 @@ export async function generateSkitScript(skit: SkitData, stage: Stage): Promise<
                 `These tags are not presented to users, so the narrative content of the script should also organically mention characters entering, exiting, or relocating. ` +
                 `\n\nThis scene is a brief visual novel skit within a video game; as such, the scene avoids major developments which would fundamentally alter the mechanics or nature of the game, ` +
                 `instead developing content within the existing rules. ` +
-                `As a result, avoid timelines or concrete, countable values throughout the skit, using vague durations or amounts for upcoming events; the game's mechanics may by unable to map directly to what is depicted in the skit, so ambiguity is preferred. ` +
-                `Generally, focus upon interpersonal dynamics, character growth, faction and patient relationships, and the state of the Station, its capabilities, and its inhabitants.` +
+                `As a result, avoid timelines or concrete, countable values throughout the skit, using vague durations or amounts for upcoming events (if at all); the game's mechanics may by unable to map directly to what is depicted in the skit, so ambiguity is preferred. ` +
+                `Generally, focus upon interpersonal dynamics, character growth, faction and patient relationships, and the Station's state, capabilities, and inhabitants.` +
                 `\n\n${alternativePrompt}` +
                 ((stage.getSave().language || 'English').toLowerCase() !== 'english' ? `\n\nNote: The game is now being played in ${stage.getSave().language}. Regardless of historic language use, generate this skit content in ${stage.getSave().language} accordingly. Special emotion and movement tags continue to use English (these are invisible to the user).` : '')
             );
