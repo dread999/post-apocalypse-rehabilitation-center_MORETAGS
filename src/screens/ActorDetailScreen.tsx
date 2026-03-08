@@ -650,123 +650,6 @@ export const ActorDetailScreen: FC<ActorDetailScreenProps> = ({ actor, stage, on
                                 </div>
                             </section>
 
-                            {/* Outfit Section */}
-                            <section>
-                                <h2 style={{
-                                    color: '#00ff88',
-                                    fontSize: '18px',
-                                    fontWeight: 'bold',
-                                    marginBottom: '15px',
-                                    borderBottom: '2px solid rgba(0, 255, 136, 0.3)',
-                                    paddingBottom: '5px'
-                                }}>
-                                    Outfit
-                                </h2>
-
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                                    <div style={{ display: 'grid', gridTemplateColumns: '2fr 3fr', gap: '15px' }}>
-                                        <div>
-                                            <label
-                                                style={{
-                                                    display: 'block',
-                                                    color: '#00ff88',
-                                                    fontSize: '14px',
-                                                    fontWeight: 'bold',
-                                                    marginBottom: '8px',
-                                                }}
-                                            >
-                                                Selected Outfit
-                                            </label>
-                                            <select
-                                                value={selectedOutfit?.id || ''}
-                                                onChange={(e) => handleSelectOutfit(e.target.value)}
-                                                style={{
-                                                    width: '100%',
-                                                    padding: '12px',
-                                                    fontSize: '14px',
-                                                    backgroundColor: 'rgba(0, 20, 40, 0.6)',
-                                                    border: '2px solid rgba(0, 255, 136, 0.3)',
-                                                    borderRadius: '5px',
-                                                    color: '#e0f0ff',
-                                                    fontFamily: 'inherit',
-                                                    cursor: 'pointer',
-                                                }}
-                                            >
-                                                {editedOutfits.map((outfit) => (
-                                                    <option key={outfit.id} value={outfit.id}>
-                                                        {outfit.name}
-                                                    </option>
-                                                ))}
-                                            </select>
-                                        </div>
-
-                                        <div>
-                                            <label
-                                                style={{
-                                                    display: 'block',
-                                                    color: '#00ff88',
-                                                    fontSize: '14px',
-                                                    fontWeight: 'bold',
-                                                    marginBottom: '8px',
-                                                }}
-                                            >
-                                                Outfit Name
-                                            </label>
-                                            <TextInput
-                                                fullWidth
-                                                value={selectedOutfit?.name || ''}
-                                                onChange={(e) => handleOutfitChange('name', e.target.value)}
-                                                placeholder="Outfit name"
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div style={{ display: 'flex', gap: '10px' }}>
-                                        <Button onClick={handleCreateOutfit}>
-                                            New Outfit
-                                        </Button>
-                                        <Button
-                                            onClick={handleDeleteOutfit}
-                                            variant="secondary"
-                                            disabled={editedOutfits.length <= 1}
-                                        >
-                                            Delete Outfit
-                                        </Button>
-                                    </div>
-
-                                    <div>
-                                        <label
-                                            style={{
-                                                display: 'block',
-                                                color: '#00ff88',
-                                                fontSize: '14px',
-                                                fontWeight: 'bold',
-                                                marginBottom: '8px',
-                                            }}
-                                        >
-                                            Outfit Description
-                                        </label>
-                                        <textarea
-                                            value={selectedOutfit?.description || ''}
-                                            onChange={(e) => handleOutfitChange('description', e.target.value)}
-                                            placeholder="Physical appearance, attire, and distinguishing features for this outfit"
-                                            style={{
-                                                width: '100%',
-                                                minHeight: '100px',
-                                                padding: '12px',
-                                                fontSize: '14px',
-                                                backgroundColor: 'rgba(0, 20, 40, 0.6)',
-                                                border: '2px solid rgba(0, 255, 136, 0.3)',
-                                                borderRadius: '5px',
-                                                color: '#e0f0ff',
-                                                fontFamily: 'inherit',
-                                                resize: 'vertical',
-                                            }}
-                                        />
-                                    </div>
-                                </div>
-                            </section>
-
                             {/* Theme & Voice Section */}
                             <section>
                                 <h2 style={{ 
@@ -935,6 +818,123 @@ export const ActorDetailScreen: FC<ActorDetailScreenProps> = ({ actor, stage, on
                                             </div>
                                         );
                                     })}
+                                </div>
+                            </section>
+
+                            {/* Outfit Section */}
+                            <section>
+                                <h2 style={{
+                                    color: '#00ff88',
+                                    fontSize: '18px',
+                                    fontWeight: 'bold',
+                                    marginBottom: '15px',
+                                    borderBottom: '2px solid rgba(0, 255, 136, 0.3)',
+                                    paddingBottom: '5px'
+                                }}>
+                                    Outfit
+                                </h2>
+
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                                    <div style={{ display: 'grid', gridTemplateColumns: '2fr 3fr', gap: '15px' }}>
+                                        <div>
+                                            <label
+                                                style={{
+                                                    display: 'block',
+                                                    color: '#00ff88',
+                                                    fontSize: '14px',
+                                                    fontWeight: 'bold',
+                                                    marginBottom: '8px',
+                                                }}
+                                            >
+                                                Selected Outfit
+                                            </label>
+                                            <select
+                                                value={selectedOutfit?.id || ''}
+                                                onChange={(e) => handleSelectOutfit(e.target.value)}
+                                                style={{
+                                                    width: '100%',
+                                                    padding: '12px',
+                                                    fontSize: '14px',
+                                                    backgroundColor: 'rgba(0, 20, 40, 0.6)',
+                                                    border: '2px solid rgba(0, 255, 136, 0.3)',
+                                                    borderRadius: '5px',
+                                                    color: '#e0f0ff',
+                                                    fontFamily: 'inherit',
+                                                    cursor: 'pointer',
+                                                }}
+                                            >
+                                                {editedOutfits.map((outfit) => (
+                                                    <option key={outfit.id} value={outfit.id}>
+                                                        {outfit.name}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
+
+                                        <div>
+                                            <label
+                                                style={{
+                                                    display: 'block',
+                                                    color: '#00ff88',
+                                                    fontSize: '14px',
+                                                    fontWeight: 'bold',
+                                                    marginBottom: '8px',
+                                                }}
+                                            >
+                                                Outfit Name
+                                            </label>
+                                            <TextInput
+                                                fullWidth
+                                                value={selectedOutfit?.name || ''}
+                                                onChange={(e) => handleOutfitChange('name', e.target.value)}
+                                                placeholder="Outfit name"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div style={{ display: 'flex', gap: '10px' }}>
+                                        <Button onClick={handleCreateOutfit}>
+                                            New Outfit
+                                        </Button>
+                                        <Button
+                                            onClick={handleDeleteOutfit}
+                                            variant="secondary"
+                                            disabled={editedOutfits.length <= 1}
+                                        >
+                                            Delete Outfit
+                                        </Button>
+                                    </div>
+
+                                    <div>
+                                        <label
+                                            style={{
+                                                display: 'block',
+                                                color: '#00ff88',
+                                                fontSize: '14px',
+                                                fontWeight: 'bold',
+                                                marginBottom: '8px',
+                                            }}
+                                        >
+                                            Outfit Description
+                                        </label>
+                                        <textarea
+                                            value={selectedOutfit?.description || ''}
+                                            onChange={(e) => handleOutfitChange('description', e.target.value)}
+                                            placeholder="Physical appearance, attire, and distinguishing features for this outfit"
+                                            style={{
+                                                width: '100%',
+                                                minHeight: '100px',
+                                                padding: '12px',
+                                                fontSize: '14px',
+                                                backgroundColor: 'rgba(0, 20, 40, 0.6)',
+                                                border: '2px solid rgba(0, 255, 136, 0.3)',
+                                                borderRadius: '5px',
+                                                color: '#e0f0ff',
+                                                fontFamily: 'inherit',
+                                                resize: 'vertical',
+                                            }}
+                                        />
+                                    </div>
                                 </div>
                             </section>
 
