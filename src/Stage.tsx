@@ -597,7 +597,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
 
         // If any echo actors are missing primary images, kick those off now.
         for (const echoActor of save.echoes) {
-            if (echoActor && (!echoActor.emotionPack || !echoActor.emotionPack[Emotion.neutral] || echoActor.emotionPack[Emotion.neutral] == echoActor.avatarImageUrl)) {
+            if (echoActor && (!echoActor.getEmotionImageUrl(Emotion.neutral) || echoActor.getEmotionImageUrl(Emotion.neutral) == echoActor.avatarImageUrl)) {
                 generateBaseActorImage(echoActor, this).then(() => {
                     this.saveGame();
                 });
@@ -607,15 +607,15 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
         // If there are any actors in the save with missing emotion images, kick one of them off now.
         for (const actorId in save.actors) {
             const actor = save.actors[actorId];
-            if (!actor.emotionPack || !actor.emotionPack[Emotion.neutral] || actor.emotionPack[Emotion.neutral] == actor.avatarImageUrl) {
+            if (!actor.getEmotionImageUrl(Emotion.neutral) || actor.getEmotionImageUrl(Emotion.neutral) == actor.avatarImageUrl) {
                 generateBaseActorImage(actor, this).then(() => {
                     this.saveGame();
                 });
                 break; // only do one at a time
-            } else if (!actor.factionId && (!actor.emotionPack || Object.values(Emotion).some(emotion => emotion !== Emotion.neutral && (
-                    !actor.emotionPack[emotion] || 
-                    actor.emotionPack[emotion] == actor.avatarImageUrl || 
-                    actor.emotionPack[emotion] == actor.emotionPack[Emotion.neutral])))) {
+            } else if (!actor.factionId && Object.values(Emotion).some(emotion => emotion !== Emotion.neutral && (
+                    !actor.getEmotionImageUrl(emotion) || 
+                    actor.getEmotionImageUrl(emotion) == actor.avatarImageUrl || 
+                    actor.getEmotionImageUrl(emotion) == actor.getEmotionImageUrl(Emotion.neutral)))) {
                 generateAdditionalActorImages(actor, this).then(() => {
                     this.saveGame();
                 });

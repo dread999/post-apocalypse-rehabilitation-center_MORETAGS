@@ -46,6 +46,15 @@ const ART_PROMPT: {[key in ArtStyle]: string} = {
     'specific artist': 'Render this character in the style of {{ARTIST}}, capturing their unique artistic techniques, color palettes, and overall aesthetic'
 };
 
+export type Outfit = {
+    id: string;
+    name: string;
+    description: string;
+    emotionPack: EmotionPack;
+}
+
+export const ORIGINAL_OUTFIT_NAME = 'Original';
+
 class Actor {
     id: string;
     name: string;
@@ -54,11 +63,12 @@ class Actor {
     factionId: string = ''; // If this actor belongs to a faction, the ID of that faction; '' is the PARC or independent
     avatarImageUrl: string;
     origin: 'patient' | 'faction' | 'aide' = 'patient';
-    description: string;
     profile: string;
     characterArc?: string;
     style: string;
-    emotionPack: EmotionPack;
+    // New structure for outfits and descriptions, replacing the previous single description and emotion pack
+    outfitId: string = ''; // The ID of the currently equipped outfit, which determines the description and emotion pack in use
+    outfits: Outfit[] = [];
     themeColor: string;
     themeFontFamily: string;
     voiceId: string;
@@ -73,10 +83,92 @@ class Actor {
     static fromSave(savedActor: any): Actor {
         const actor = Object.create(Actor.prototype);
         Object.assign(actor, savedActor);
+
+        const legacyDescription = typeof savedActor?.description === 'string' ? savedActor.description : '';
+        const legacyEmotionPack: EmotionPack = (savedActor?.emotionPack && typeof savedActor.emotionPack === 'object')
+            ? savedActor.emotionPack
+            : {};
+
+        if (!Array.isArray(actor.outfits) || actor.outfits.length === 0) {
+            actor.outfits = [Actor.createOutfit(ORIGINAL_OUTFIT_NAME, legacyDescription, legacyEmotionPack)];
+        } else {
+            actor.outfits = actor.outfits.map((outfit: Partial<Outfit>) => ({
+                id: outfit.id || generateUuid(),
+                name: outfit.name || ORIGINAL_OUTFIT_NAME,
+                description: typeof outfit.description === 'string' ? outfit.description : '',
+                emotionPack: (outfit.emotionPack && typeof outfit.emotionPack === 'object') ? outfit.emotionPack : {},
+            }));
+        }
+
+        if (!actor.outfitId || !actor.outfits.some((outfit: Outfit) => outfit.id === actor.outfitId)) {
+            const originalOutfit = actor.outfits.find((outfit: Outfit) => outfit.name === ORIGINAL_OUTFIT_NAME);
+            actor.outfitId = (originalOutfit || actor.outfits[0]).id;
+        }
+
+        // Remove legacy own-properties so compatibility accessors are used.
+        delete actor.description;
+        delete actor.emotionPack;
+
         if (actor.decorImageUrls === undefined) {
             actor.decorImageUrls = {};
         }
         return actor;
+    }
+
+    private static createOutfit(name: string, description: string, emotionPack: EmotionPack): Outfit {
+        return {
+            id: generateUuid(),
+            name,
+            description: description || '',
+            emotionPack: emotionPack || {},
+        };
+    }
+
+    private ensureOutfitState(): void {
+        if (!Array.isArray(this.outfits)) {
+            this.outfits = [];
+        }
+
+        if (this.outfits.length === 0) {
+            const fallbackOutfit = Actor.createOutfit(ORIGINAL_OUTFIT_NAME, '', {});
+            this.outfits = [fallbackOutfit];
+            this.outfitId = fallbackOutfit.id;
+            return;
+        }
+
+        if (!this.outfitId || !this.outfits.some((outfit) => outfit.id === this.outfitId)) {
+            const originalOutfit = this.outfits.find((outfit) => outfit.name === ORIGINAL_OUTFIT_NAME);
+            this.outfitId = (originalOutfit || this.outfits[0]).id;
+        }
+    }
+
+    getActiveOutfit(): Outfit {
+        this.ensureOutfitState();
+        return this.outfits.find((outfit) => outfit.id === this.outfitId) || this.outfits[0];
+    }
+
+    getDescription(): string {
+        return this.getActiveOutfit().description;
+    }
+
+    setDescription(description: string) {
+        this.getActiveOutfit().description = description || '';
+    }
+
+    getEmotionPack(): EmotionPack {
+        return this.getActiveOutfit().emotionPack;
+    }
+
+    setEmotionPack(emotionPack: EmotionPack) {
+        this.getActiveOutfit().emotionPack = emotionPack || {};
+    }
+
+    getEmotionImageUrl(emotion: Emotion | string): string {
+        return this.getEmotionPack()[emotion] || '';
+    }
+
+    setEmotionImageUrl(emotion: Emotion | string, imageUrl: string): void {
+        this.getEmotionPack()[emotion] = imageUrl || '';
     }
 
     constructor(id: string, name: string, fullPath: string, avatarImageUrl: string, description: string, profile: string, style: string, voiceId: string, emotionPack: EmotionPack, stats: Record<Stat, number>, themeColor: string, themeFontFamily: string) {
@@ -84,11 +176,12 @@ class Actor {
         this.name = name;
         this.fullPath = fullPath;
         this.avatarImageUrl = avatarImageUrl;
-        this.description = description;
+        const originalOutfit = Actor.createOutfit(ORIGINAL_OUTFIT_NAME, description, emotionPack);
+        this.outfits = [originalOutfit];
+        this.outfitId = originalOutfit.id;
         this.profile = profile;
         this.style = style;
         this.voiceId = voiceId;
-        this.emotionPack = emotionPack;
         // populate the consolidated mapping for easier, enum-based lookups
         this.stats = stats;
         this.themeColor = themeColor;
@@ -96,7 +189,7 @@ class Actor {
     }
 
     get isPrimaryImageReady(): boolean {
-        return !!this.emotionPack['neutral'];
+        return !!this.getEmotionImageUrl('neutral');
     }
 
     /**
@@ -146,12 +239,13 @@ class Actor {
      */
     getEmotionImage(emotion: Emotion | string, stage?: Stage): string {
         const emotionKey = typeof emotion === 'string' ? emotion : emotion;
-        const emotionUrl = this.emotionPack[emotionKey];
-        const neutralUrl = this.emotionPack['neutral'] || this.emotionPack['base'];
+        const emotionPack = this.getEmotionPack();
+        const emotionUrl = emotionPack[emotionKey];
+        const neutralUrl = emotionPack['neutral'] || emotionPack['base'];
         const fallbackUrl = neutralUrl || this.avatarImageUrl || '';
 
         // Check if we need to generate the image
-        if (stage && (emotion === 'neutral' || !stage.getSave().disableEmotionImages) && (!emotionUrl || emotionUrl === this.avatarImageUrl || emotionUrl === this.emotionPack['base'] || (emotionKey !== 'neutral' && emotionUrl === neutralUrl))) {
+        if (stage && (emotion === 'neutral' || !stage.getSave().disableEmotionImages) && (!emotionUrl || emotionUrl === this.avatarImageUrl || emotionUrl === emotionPack['base'] || (emotionKey !== 'neutral' && emotionUrl === neutralUrl))) {
             // Kick off generation in the background (don't wait)
             generateEmotionImage(this, emotion as Emotion, stage);
         }
@@ -419,13 +513,13 @@ export async function loadReserveActor(data: any, stage: Stage): Promise<Actor|n
     } else if (findBestNameMatch(newActor.name, [...Object.values(stage.getSave().actors), ...stage.getSave().reserveActors || []])) {
         console.log(`Discarding actor due to name similarity: ${newActor.name}`);
         return null;
-    } else if (!newActor.description) {
+    } else if (!newActor.getDescription()) {
         console.log(`Discarding actor due to missing description: ${newActor.name}`);
         return null;
     } else if (!newActor.profile) {
         console.log(`Discarding actor due to missing profile: ${newActor.name}`);
         return null;
-    } else if (Object.keys(bannedWordSubstitutes).some(word => newActor.description.toLowerCase().includes(word))) {
+    } else if (Object.keys(bannedWordSubstitutes).some(word => newActor.getDescription().toLowerCase().includes(word))) {
         console.log(`Discarding actor due to banned words in description: ${newActor.name}`);
         return null;
     } else if (Object.entries(newActor.stats).every(([key, value]) => value === DEFAULT_TRAIT_MAP[key as Stat])) {
@@ -434,7 +528,7 @@ export async function loadReserveActor(data: any, stage: Stage): Promise<Actor|n
     } else if (newActor.name.length <= 2 || newActor.name.length >= 30) {
         console.log(`Discarding actor due to extreme name length: ${newActor.name}`);
         return null;
-    } else if (/[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]/.test(`${newActor.name}${newActor.description}${newActor.profile}`)) {
+    } else if (/[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]/.test(`${newActor.name}${newActor.getDescription()}${newActor.profile}`)) {
         console.log(`Discarding actor due to non-english characters in name/description/profile: ${newActor.name}`);
         return null;
     } else if (Object.values(newActor.stats).some(value => value < 1 || value > 10)) {
@@ -448,11 +542,11 @@ export async function loadReserveActor(data: any, stage: Stage): Promise<Actor|n
 export async function generateBaseActorImage(actor: Actor, stage: Stage, force: boolean = false, fromAvatar: boolean = true): Promise<void> {
     console.log(`Populating images for actor ${actor.name} (ID: ${actor.id})`);
     // If the actor has no neutral emotion image in their emotion pack, generate one based on their description or from the existing avatar image
-    if (!actor.emotionPack['neutral'] || force) {
+    if (!actor.getEmotionImageUrl('neutral') || force) {
         console.log(`Generating neutral emotion image for actor ${actor.name}`);
         // Want to clear in-progress stuff if forcing
         if (force) {
-            actor.emotionPack = {};
+            actor.setEmotionPack({});
             delete stage.imageGenerationPromises[`actor/${actor.id}`];
         }
         let imageUrl = '';
@@ -462,7 +556,7 @@ export async function generateBaseActorImage(actor: Actor, stage: Stage, force: 
             // Use stage.makeImage to create a neutral expression based on the description
             imageUrl = await stage.makeImage({
                 prompt: (`${((stage.getSave().characterArtStyle || 'original') === 'original') ? 'Illustrate this character in a hyperrealistic anime visual novel style' : ART_PROMPT[stage.getSave().characterArtStyle || 'original']}: ` +
-                    `${actor.description}. Create a waist-up portrait of this character with a neutral expression and pose, placed on a light gray background. `)
+                    `${actor.getDescription()}. Create a waist-up portrait of this character with a neutral expression and pose, placed on a light gray background. `)
                     .replace('{{ARTIST}}', stage.getSave().characterArtist || 'some professional'),
                 aspect_ratio: AspectRatio.PHOTO_VERTICAL
             }, '');
@@ -471,7 +565,7 @@ export async function generateBaseActorImage(actor: Actor, stage: Stage, force: 
         // Use stage.makeImageFromImage to create a base image.
         imageUrl = await stage.makeImageFromImage({
             image: imageUrl || actor.avatarImageUrl,
-            prompt: (`${ART_PROMPT[stage.getSave().characterArtStyle || 'original']}. Create a waist-up portrait of this character: ${actor.description}. Give them a neutral expression and pose and place them on a light gray background. ` +
+            prompt: (`${ART_PROMPT[stage.getSave().characterArtStyle || 'original']}. Create a waist-up portrait of this character: ${actor.getDescription()}. Give them a neutral expression and pose and place them on a light gray background. ` +
                 `Regardless of the description, zoom and crop the image at their waist, but maintain a margin of negative space over their head/hair.`)
                 .replace('{{ARTIST}}', stage.getSave().characterArtist || 'some professional'),
             remove_background: true,
@@ -480,11 +574,11 @@ export async function generateBaseActorImage(actor: Actor, stage: Stage, force: 
         
         console.log(`Generated base emotion image for actor ${actor.name} from avatar image: ${imageUrl || ''}`);
         
-        actor.emotionPack['base'] = imageUrl || '';
+        actor.setEmotionImageUrl('base', imageUrl || '');
 
         if (force) {
             // Invalidate all other emotions
-            actor.emotionPack = {'base': actor.emotionPack['base']};
+            actor.setEmotionPack({'base': actor.getEmotionImageUrl('base')});
         }
         // Generate neutral but don't wait up.
         void generateEmotionImage(actor, Emotion.neutral, stage);
@@ -494,11 +588,11 @@ export async function generateBaseActorImage(actor: Actor, stage: Stage, force: 
 export async function generateAdditionalActorImages(actor: Actor, stage: Stage): Promise<void> {
 
     console.log(`Generating additional emotion images for actor ${actor.name} (ID: ${actor.id})`);
-    if (actor.emotionPack['neutral']) {
+    if (actor.getEmotionImageUrl('neutral')) {
         // Generate in serial and not parallel as below:
         for (const emotion of Object.values(Emotion)) {
             // Only generate if the emotion image is missing, and only if the actor is in the save or currently in an echo slot
-            if (!actor.emotionPack[emotion] && (Object.keys(stage.getSave().actors).includes(actor.id) || stage.getEchoSlots().some(slot => slot?.id || '' === actor.id))) {
+            if (!actor.getEmotionImageUrl(emotion) && (Object.keys(stage.getSave().actors).includes(actor.id) || stage.getEchoSlots().some(slot => slot?.id || '' === actor.id))) {
                 await generateEmotionImage(actor, emotion, stage);
             }
         }
@@ -506,18 +600,18 @@ export async function generateAdditionalActorImages(actor: Actor, stage: Stage):
 }
 
 export async function generateEmotionImage(actor: Actor, emotion: Emotion, stage: Stage, force: boolean = false): Promise<string> {
-    if (actor.emotionPack['base'] && (!stage.imageGenerationPromises[`actor/${actor.id}`] || force) && (emotion == 'neutral' || !stage.getSave().disableEmotionImages)) {
+    if (actor.getEmotionImageUrl('base') && (!stage.imageGenerationPromises[`actor/${actor.id}`] || force) && (emotion == 'neutral' || !stage.getSave().disableEmotionImages)) {
         console.log(`Generating ${emotion} emotion image for actor ${actor.name}`);
         stage.imageGenerationPromises[`actor/${actor.id}`] = stage.makeImageFromImage({
-            image: actor.emotionPack['base'] || '',
-            prompt: `Give this character ${EMOTION_PROMPTS[emotion]}, while maintaining their core appearance: ${actor.description}.`,
+            image: actor.getEmotionImageUrl('base') || '',
+            prompt: `Give this character ${EMOTION_PROMPTS[emotion]}, while maintaining their core appearance: ${actor.getDescription()}.`,
             remove_background: true,
             transfer_type: 'edit'
         }, '');
         const imageUrl = await stage.imageGenerationPromises[`actor/${actor.id}`];
         delete stage.imageGenerationPromises[`actor/${actor.id}`];
         console.log(`Generated ${emotion} emotion image for actor ${actor.name}: ${imageUrl || ''}`);
-        actor.emotionPack[emotion] = imageUrl || '';
+        actor.setEmotionImageUrl(emotion, imageUrl || '');
         return imageUrl || '';
     }
     return '';
@@ -576,7 +670,7 @@ export async function generateActorDecor(actor: Actor, module: Module, stage: St
  * Additional images are generated in the background
  */
 export async function commitActorToEcho(actor: Actor, stage: Stage): Promise<void> {
-    if (actor.emotionPack['neutral']) {
+    if (actor.getEmotionImageUrl('neutral')) {
         // If neutral image exists, start background generation of additional images if not complete
         generateAdditionalActorImages(actor, stage).catch(console.error);
         return; // Neutral image already exists, actor is ready

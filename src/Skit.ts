@@ -414,7 +414,7 @@ export function generateSkitPrompt(skit: SkitData, stage: Stage, historyLength: 
             )[0];
             const module = save.layout.getModuleById(actor.locationId);
             const locationString = module ? (module.type === 'quarters' ? (module.ownerId === actor.id ? ' Their Quarters' : (`${save.actors[module.ownerId || ''] || 'Someone'}'s Quarters`)) : module.getAttribute('name')) : 'Unknown';
-            return `  ${actor.name}\n    Description: ${actor.description}\n    Profile: ${actor.profile}\n    Role: ${roleModule?.getAttribute('role') || 'Patient'}\n    Location: ${locationString}`;
+            return `  ${actor.name}\n    Description: ${actor.getDescription()}\n    Profile: ${actor.profile}\n    Role: ${roleModule?.getAttribute('role') || 'Patient'}\n    Location: ${locationString}`;
         }).join('\n')}` +
         // List away characters for reference; just need description and profile:
         `\n\nOff-Station Characters (On Assignment Away from the PARC):\n${awayPatients.map(actor => {
@@ -423,19 +423,19 @@ export function generateSkitPrompt(skit: SkitData, stage: Stage, historyLength: 
                 m && m.type !== 'quarters' && m.ownerId === actor.id
             )[0];
             const atFaction = save.factions[actor.locationId];
-            return `  ${actor.name}\n    Description: ${actor.description}\n    Profile: ${actor.profile}\n    Role: ${roleModule?.getAttribute('role') || 'Patient'}\n    On Assignment to: ${atFaction?.name || 'Unknown Faction'}`;
+            return `  ${actor.name}\n    Description: ${actor.getDescription()}\n    Profile: ${actor.profile}\n    Role: ${roleModule?.getAttribute('role') || 'Patient'}\n    On Assignment to: ${atFaction?.name || 'Unknown Faction'}`;
         }).join('\n')}` +
         // List cryo characters for reference; just need description and profile:
         (cryoPatients.length > 0 ? `\n\nCryo Frozen Characters (Absolutely Unavailable):\n${cryoPatients.map(actor => {
             const entranceEvent = stage.getSave().timeline?.find(event => event.skit?.actorId === actor.id && event.skit?.type === SkitType.ENTER_CRYO);
             const entranceDate = entranceEvent ? entranceEvent.day : stage.getSave().day;
-            return `  ${actor.name}\n    Description: ${actor.description}\n    Profile: ${actor.profile}\n    Days in Cryo: ${save.day - entranceDate}`;
+            return `  ${actor.name}\n    Description: ${actor.getDescription()}\n    Profile: ${actor.profile}\n    Days in Cryo: ${save.day - entranceDate}`;
         }).join('\n')}` : '') +
         // List stat meanings, for reference:
         `\n\nStats:\n${Object.values(Stat).map(stat => `  ${stat.toUpperCase()}: ${getStatDescription(stat)}`).join('\n')}` +
         `\n\nScene Prompt:\n  ${generateSkitTypePrompt(skit, stage, skit.script.length > 0)}` +
         (faction ? `\n\n${faction.name} Details:\n  ${faction.description}\n${faction.name} Aesthetic:\n  ${faction.visualStyle}` : '') +
-        (factionRepresentative ? `\n${faction?.name || 'The faction'}'s representative, ${factionRepresentative.name}, appears on-screen. Their description: ${factionRepresentative.description}` : 'They have no designated liaison for this communication; any characters introduced during this scene will be transient.') +
+        (factionRepresentative ? `\n${faction?.name || 'The faction'}'s representative, ${factionRepresentative.name}, appears on-screen. Their description: ${factionRepresentative.getDescription()}` : 'They have no designated liaison for this communication; any characters introduced during this scene will be transient.') +
         (faction ? `\n\nThis skit may explore the nature of this faction's relationship with an intentions for the Director, the PARC, or its patients. ` +
             `Typically, this and other factions contact the PARC to express interest in making offers for resources, information, or patients. ` +
             `The faction could have a temporary job to offer a patient, or suggest an exchange of resources or favors. Or they could have a permanent role in mind for an ideal candidate patient. ` +
@@ -468,7 +468,7 @@ export function generateSkitPrompt(skit: SkitData, stage: Stage, historyLength: 
                 m && m.type !== 'quarters' && m.ownerId === actor.id
             )[0];
             const birthDay = save.timeline?.find(event => event.skit?.actorId === actor.id && event.skit?.type === SkitType.INTRO_CHARACTER)?.day || save.day;
-            return `  ${actor.name}\n    Description: ${actor.description}\n    Profile: ${actor.profile}\n    Character Arc: ${actor.characterArc}\n    Days Aboard: ${save.day - birthDay}\n` +
+            return `  ${actor.name}\n    Description: ${actor.getDescription()}\n    Profile: ${actor.profile}\n    Character Arc: ${actor.characterArc}\n    Days Aboard: ${save.day - birthDay}\n` +
             (roleModule ? `    Role: ${roleModule.getAttribute('role') || 'Patient'} (${actor.heldRoles[roleModule.getAttribute('role') || 'Patient'] || 0} days)\n` : '') +
             `    Role Description: ${roleModule?.getAttribute('roleDescription') || 'This character has no assigned role aboard the PARC. They are to focus upon their own needs.'}\n` +
             `    Stats:\n      ${Object.entries(actor.stats).map(([stat, value]) => `${stat}: ${value}`).join(', ')}`}).join('\n')}` +

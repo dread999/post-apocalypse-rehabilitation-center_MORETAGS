@@ -92,7 +92,7 @@ export function smartRehydrate(obj: any): any {
     }
 
     // Try to detect Actor by structure
-    if (obj.id && obj.name && obj.stats && obj.emotionPack) {
+    if (obj.id && obj.name && obj.stats && (obj.emotionPack || obj.outfits)) {
         return Actor.fromSave(obj);
     }
 

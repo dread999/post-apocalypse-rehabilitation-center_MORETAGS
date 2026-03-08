@@ -29,7 +29,7 @@ export const ActorDetailScreen: FC<ActorDetailScreenProps> = ({ actor, stage, on
         themeFontFamily: string;
     }>({
         name: actor.name,
-        description: actor.description,
+        description: actor.getDescription(),
         profile: actor.profile,
         characterArc: actor.characterArc || '',
         style: actor.style,
@@ -61,7 +61,7 @@ export const ActorDetailScreen: FC<ActorDetailScreenProps> = ({ actor, stage, on
         
         // Update the actor in the save
         actor.name = editedActor.name;
-        actor.description = editedActor.description;
+        actor.setDescription(editedActor.description);
         actor.profile = editedActor.profile;
         actor.characterArc = editedActor.characterArc;
         actor.style = editedActor.style;
@@ -136,7 +136,7 @@ export const ActorDetailScreen: FC<ActorDetailScreenProps> = ({ actor, stage, on
         try {
             const imageKey = getImageKey(target);
             const uploadedUrl = await stage().uploadFile(`${actor.id}-${imageKey}.png`, file);
-            actor.emotionPack[imageKey] = uploadedUrl;
+            actor.setEmotionImageUrl(imageKey, uploadedUrl);
             stage().saveGame();
             forceUpdate({});
         } catch (error) {
@@ -252,7 +252,7 @@ export const ActorDetailScreen: FC<ActorDetailScreenProps> = ({ actor, stage, on
     const decorImages = Object.entries(actor.decorImageUrls).filter(([_, url]) => url);
 
     const currentImageKey = imageDialog.target ? getImageKey(imageDialog.target) : '';
-    const currentImageUrl = currentImageKey ? actor.emotionPack[currentImageKey] : '';
+    const currentImageUrl = currentImageKey ? actor.getEmotionImageUrl(currentImageKey) : '';
     const isCurrentImageRegenerating = currentImageKey ? regeneratingImages.has(currentImageKey) : false;
     const imageTargetLabel = imageDialog.target || '';
 
@@ -737,10 +737,10 @@ export const ActorDetailScreen: FC<ActorDetailScreenProps> = ({ actor, stage, on
                                             style={{
                                                 width: '120px',
                                                 height: '120px',
-                                                backgroundColor: actor.emotionPack['base'] ? 'transparent' : 'rgba(0, 20, 40, 0.6)',
-                                                border: `2px solid ${actor.emotionPack['base'] ? 'rgba(255, 136, 0, 0.5)' : 'rgba(0, 255, 136, 0.2)'}`,
+                                                backgroundColor: actor.getEmotionImageUrl('base') ? 'transparent' : 'rgba(0, 20, 40, 0.6)',
+                                                border: `2px solid ${actor.getEmotionImageUrl('base') ? 'rgba(255, 136, 0, 0.5)' : 'rgba(0, 255, 136, 0.2)'}`,
                                                 borderRadius: '8px',
-                                                backgroundImage: actor.emotionPack['base'] ? `url(${actor.emotionPack['base']})` : 'none',
+                                                backgroundImage: actor.getEmotionImageUrl('base') ? `url(${actor.getEmotionImageUrl('base')})` : 'none',
                                                 backgroundSize: 'cover',
                                                 backgroundPosition: 'center top',
                                                 display: 'flex',
@@ -750,7 +750,7 @@ export const ActorDetailScreen: FC<ActorDetailScreenProps> = ({ actor, stage, on
                                                 position: 'relative',
                                             }}
                                         >
-                                            {!actor.emotionPack['base'] && (
+                                            {!actor.getEmotionImageUrl('base') && (
                                                 <div style={{
                                                     color: 'rgba(0, 255, 136, 0.3)',
                                                     fontSize: '12px',
@@ -789,7 +789,7 @@ export const ActorDetailScreen: FC<ActorDetailScreenProps> = ({ actor, stage, on
 
                                     {/* Emotion Images */}
                                     {allEmotions.map(emotion => {
-                                        const imageUrl = actor.emotionPack[emotion];
+                                        const imageUrl = actor.getEmotionImageUrl(emotion);
                                         const hasImage = !!imageUrl;
                                         const isRegenerating = regeneratingImages.has(emotion);
                                         
