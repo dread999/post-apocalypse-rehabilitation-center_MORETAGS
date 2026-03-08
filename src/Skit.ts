@@ -661,6 +661,8 @@ export async function generateSkitScript(skit: SkitData, stage: Stage): Promise<
                     // Skip empty lines
                     let trimmed = line.trim();
 
+                    console.log(`Process line: ${trimmed}`);
+
                     // If a line doesn't end with ], ., !, ?, or ", then it's likely incomplete and we should drop it.
                     if (!trimmed || ![']', '*', '_', ')', '.', '!', '?', '"', '\''].some(end => trimmed.endsWith(end))) continue;
 
@@ -707,6 +709,7 @@ export async function generateSkitScript(skit: SkitData, stage: Stage): Promise<
                         if (wearResult) {
                             newOutfitChanges[wearResult.actorId] = wearResult.outfitId;
                             parsedCurrentOutfits[wearResult.actorId] = wearResult.outfitId;
+                            console.log(`Processed wear tag for ${wearResult.actorId}: ${wearResult.outfitId}`);
                             continue;
                         }
                         
