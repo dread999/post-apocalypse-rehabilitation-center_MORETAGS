@@ -582,9 +582,9 @@ export async function generateBaseActorImage(
         // Use stage.makeImageFromImage to create a base image.
         imageUrl = await stage.makeImageFromImage({
             image: baseSourceImage,
-            prompt: (`${ART_PROMPT[stage.getSave().characterArtStyle || 'original']}. Create a waist-up portrait of this character: ${actor.getDescription(targetOutfitId)}. Give them a neutral expression and pose and place them on a light gray background. ` +
-                `Regardless of the description, zoom and crop the image at their waist, but maintain a margin of negative space over their head/hair.`)
-                .replace('{{ARTIST}}', stage.getSave().characterArtist || 'some professional'),
+            prompt: (fromAvatar ? `${ART_PROMPT[stage.getSave().characterArtStyle || 'original']}.` : '').replace('{{ARTIST}}', stage.getSave().characterArtist || 'some professional') + 
+                `Create a waist-up portrait of this character to match this updated description: ${actor.getDescription(targetOutfitId)}\nGive them a neutral expression and pose and place them on a light gray background. ` +
+                `Regardless of the description, zoom and crop the image at their waist, but maintain a margin of negative space over their head/hair.`,
             remove_background: true,
             transfer_type: 'edit'
         }, '');
