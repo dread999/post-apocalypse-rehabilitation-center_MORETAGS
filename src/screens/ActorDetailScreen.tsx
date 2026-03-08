@@ -1,8 +1,9 @@
-import { FC, useRef, useState } from 'react';
+import { FC, useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 import { Stage } from '../Stage';
-import Actor, { Stat, ACTOR_STAT_ICONS, generateBaseActorImage, generateEmotionImage, generateActorDecor, VOICE_MAP } from '../actors/Actor';
+import { v4 as generateUuid } from 'uuid';
+import Actor, { Stat, ACTOR_STAT_ICONS, generateBaseActorImage, generateEmotionImage, generateActorDecor, VOICE_MAP, Outfit, ORIGINAL_OUTFIT_NAME } from '../actors/Actor';
 import { Emotion } from '../actors/Emotion';
 import { GlassPanel, Title, Button, TextInput, Chip } from '../components/UIComponents';
 import { Close, Save, Image as ImageIcon } from '@mui/icons-material';
@@ -16,11 +17,27 @@ interface ActorDetailScreenProps {
 
 export const ActorDetailScreen: FC<ActorDetailScreenProps> = ({ actor, stage, onClose }) => {
     type ImageTarget = 'base' | Emotion;
+    const initialOutfitIdRef = useRef(actor.outfitId);
+
+    const getClonedOutfits = (): Outfit[] => {
+        const sourceOutfits = Array.isArray(actor.outfits) && actor.outfits.length > 0
+            ? actor.outfits
+            : [{
+                id: actor.outfitId || generateUuid(),
+                name: ORIGINAL_OUTFIT_NAME,
+                description: actor.getDescription(),
+                emotionPack: { ...actor.getEmotionPack() },
+            }];
+
+        return sourceOutfits.map((outfit) => ({
+            ...outfit,
+            emotionPack: { ...(outfit.emotionPack || {}) },
+        }));
+    };
 
     // Local state for editable fields
     const [editedActor, setEditedActor] = useState<{
         name: string;
-        description: string;
         profile: string;
         characterArc: string;
         style: string;
@@ -29,13 +46,20 @@ export const ActorDetailScreen: FC<ActorDetailScreenProps> = ({ actor, stage, on
         themeFontFamily: string;
     }>({
         name: actor.name,
-        description: actor.getDescription(),
         profile: actor.profile,
         characterArc: actor.characterArc || '',
         style: actor.style,
         voiceId: actor.voiceId,
         themeColor: actor.themeColor,
         themeFontFamily: actor.themeFontFamily,
+    });
+    const [editedOutfits, setEditedOutfits] = useState<Outfit[]>(() => getClonedOutfits());
+    const [selectedOutfitId, setSelectedOutfitId] = useState<string>(() => {
+        const outfits = getClonedOutfits();
+        if (actor.outfitId && outfits.some((outfit) => outfit.id === actor.outfitId)) {
+            return actor.outfitId;
+        }
+        return outfits[0]?.id || '';
     });
 
     const [isSaving, setIsSaving] = useState(false);
@@ -55,19 +79,60 @@ export const ActorDetailScreen: FC<ActorDetailScreenProps> = ({ actor, stage, on
         actions?: Array<{ label: string; onClick: () => void; variant?: 'primary' | 'secondary' }>;
         onConfirm?: () => void;
     }>({ open: false, title: '', message: '' });
+    const initialOutfitsRef = useRef<Outfit[]>(getClonedOutfits());
+
+    useEffect(() => {
+        actor.outfits = editedOutfits;
+        if (selectedOutfitId) {
+            actor.outfitId = selectedOutfitId;
+        }
+    }, [actor, editedOutfits, selectedOutfitId]);
+
+    const selectedOutfit = editedOutfits.find((outfit) => outfit.id === selectedOutfitId) || editedOutfits[0] || null;
+
+    const handleCloseDetail = () => {
+        actor.outfits = initialOutfitsRef.current.map((outfit) => ({
+            ...outfit,
+            emotionPack: { ...(outfit.emotionPack || {}) },
+        }));
+        actor.outfitId = initialOutfitIdRef.current;
+        onClose();
+    };
 
     const handleSave = () => {
         setIsSaving(true);
+
+        const nextOutfits = editedOutfits.length > 0
+            ? editedOutfits
+            : [{
+                id: generateUuid(),
+                name: ORIGINAL_OUTFIT_NAME,
+                description: '',
+                emotionPack: {},
+            }];
+
+        const nextOutfitId = nextOutfits.some((outfit) => outfit.id === selectedOutfitId)
+            ? selectedOutfitId
+            : nextOutfits[0].id;
         
         // Update the actor in the save
         actor.name = editedActor.name;
-        actor.setDescription(editedActor.description);
         actor.profile = editedActor.profile;
         actor.characterArc = editedActor.characterArc;
         actor.style = editedActor.style;
         actor.voiceId = editedActor.voiceId;
         actor.themeColor = editedActor.themeColor;
         actor.themeFontFamily = editedActor.themeFontFamily;
+        actor.outfits = nextOutfits.map((outfit) => ({
+            ...outfit,
+            emotionPack: { ...(outfit.emotionPack || {}) },
+        }));
+        actor.outfitId = nextOutfitId;
+        initialOutfitsRef.current = actor.outfits.map((outfit) => ({
+            ...outfit,
+            emotionPack: { ...(outfit.emotionPack || {}) },
+        }));
+        initialOutfitIdRef.current = nextOutfitId;
 
         // Save the game
         stage().saveGame();
@@ -83,6 +148,68 @@ export const ActorDetailScreen: FC<ActorDetailScreenProps> = ({ actor, stage, on
             ...prev,
             [field]: value
         }));
+    };
+
+    const handleOutfitChange = (field: 'name' | 'description', value: string) => {
+        if (!selectedOutfitId) return;
+        setEditedOutfits((prev) => prev.map((outfit) => (
+            outfit.id === selectedOutfitId
+                ? { ...outfit, [field]: value }
+                : outfit
+        )));
+    };
+
+    const handleSelectOutfit = (outfitId: string) => {
+        setSelectedOutfitId(outfitId);
+    };
+
+    const getNextOutfitName = (): string => {
+        let nextIndex = editedOutfits.length + 1;
+        let candidate = `Outfit ${nextIndex}`;
+        const usedNames = new Set(editedOutfits.map((outfit) => outfit.name.toLowerCase()));
+        while (usedNames.has(candidate.toLowerCase())) {
+            nextIndex += 1;
+            candidate = `Outfit ${nextIndex}`;
+        }
+        return candidate;
+    };
+
+    const handleCreateOutfit = () => {
+        const newOutfit: Outfit = {
+            id: generateUuid(),
+            name: getNextOutfitName(),
+            description: '',
+            emotionPack: {},
+        };
+        setEditedOutfits((prev) => [...prev, newOutfit]);
+        setSelectedOutfitId(newOutfit.id);
+    };
+
+    const handleDeleteOutfit = () => {
+        if (!selectedOutfit || editedOutfits.length <= 1) {
+            return;
+        }
+
+        setConfirmDialog({
+            open: true,
+            title: `Delete Outfit: ${selectedOutfit.name}`,
+            message: 'This will remove the selected outfit and all of its emotion images. This cannot be undone. Continue?',
+            actions: [
+                {
+                    label: 'Delete Outfit',
+                    onClick: () => {
+                        setConfirmDialog((prev) => ({ ...prev, open: false }));
+                        setEditedOutfits((prev) => {
+                            const next = prev.filter((outfit) => outfit.id !== selectedOutfit.id);
+                            const replacement = next[0]?.id || '';
+                            setSelectedOutfitId(replacement);
+                            return next;
+                        });
+                    },
+                    variant: 'primary',
+                },
+            ],
+        });
     };
 
     const handleRegenerateEmotion = async (emotion: Emotion) => {
@@ -132,10 +259,15 @@ export const ActorDetailScreen: FC<ActorDetailScreenProps> = ({ actor, stage, on
             return;
         }
 
+        if (!selectedOutfitId) {
+            alert('Select an outfit before uploading images.');
+            return;
+        }
+
         setIsUploadingImage(true);
         try {
             const imageKey = getImageKey(target);
-            const uploadedUrl = await stage().uploadFile(`${actor.id}-${imageKey}.png`, file);
+            const uploadedUrl = await stage().uploadFile(`${actor.id}-${selectedOutfitId}-${imageKey}.png`, file);
             actor.setEmotionImageUrl(imageKey, uploadedUrl);
             stage().saveGame();
             forceUpdate({});
@@ -255,6 +387,7 @@ export const ActorDetailScreen: FC<ActorDetailScreenProps> = ({ actor, stage, on
     const currentImageUrl = currentImageKey ? actor.getEmotionImageUrl(currentImageKey) : '';
     const isCurrentImageRegenerating = currentImageKey ? regeneratingImages.has(currentImageKey) : false;
     const imageTargetLabel = imageDialog.target || '';
+    const imageTargetOutfitName = selectedOutfit?.name || 'Outfit';
 
     return (
         <AnimatePresence>
@@ -284,7 +417,7 @@ export const ActorDetailScreen: FC<ActorDetailScreenProps> = ({ actor, stage, on
                     const hasSelection = selection && selection.toString().length > 0;
                     
                     if (e.target === e.currentTarget && !hasSelection) {
-                        onClose();
+                        handleCloseDetail();
                     }
                 }}
             >
@@ -323,7 +456,7 @@ export const ActorDetailScreen: FC<ActorDetailScreenProps> = ({ actor, stage, on
                             zIndex: 10,
                         }}>
                             <Title variant="glow" style={{ fontSize: '24px', margin: 0 }}>
-                                Actor Details: {actor.name}
+                                Actor Details: {editedActor.name}
                             </Title>
                             <div style={{ display: 'flex', gap: '10px' }}>
                                 <Button
@@ -341,7 +474,7 @@ export const ActorDetailScreen: FC<ActorDetailScreenProps> = ({ actor, stage, on
                                 <motion.button
                                     whileHover={{ scale: 1.1 }}
                                     whileTap={{ scale: 0.9 }}
-                                    onClick={onClose}
+                                    onClick={handleCloseDetail}
                                     style={{
                                         background: 'transparent',
                                         border: 'none',
@@ -394,38 +527,6 @@ export const ActorDetailScreen: FC<ActorDetailScreenProps> = ({ actor, stage, on
                                             value={editedActor.name}
                                             onChange={(e) => handleInputChange('name', e.target.value)}
                                             placeholder="Character name"
-                                        />
-                                    </div>
-
-                                    {/* Description */}
-                                    <div>
-                                        <label 
-                                            style={{
-                                                display: 'block',
-                                                color: '#00ff88',
-                                                fontSize: '14px',
-                                                fontWeight: 'bold',
-                                                marginBottom: '8px',
-                                            }}
-                                        >
-                                            Physical Description
-                                        </label>
-                                        <textarea
-                                            value={editedActor.description}
-                                            onChange={(e) => handleInputChange('description', e.target.value)}
-                                            placeholder="Physical appearance, attire, and distinguishing features"
-                                            style={{
-                                                width: '100%',
-                                                minHeight: '100px',
-                                                padding: '12px',
-                                                fontSize: '14px',
-                                                backgroundColor: 'rgba(0, 20, 40, 0.6)',
-                                                border: '2px solid rgba(0, 255, 136, 0.3)',
-                                                borderRadius: '5px',
-                                                color: '#e0f0ff',
-                                                fontFamily: 'inherit',
-                                                resize: 'vertical',
-                                            }}
                                         />
                                     </div>
 
@@ -513,6 +614,123 @@ export const ActorDetailScreen: FC<ActorDetailScreenProps> = ({ actor, stage, on
                                             style={{
                                                 width: '100%',
                                                 minHeight: '60px',
+                                                padding: '12px',
+                                                fontSize: '14px',
+                                                backgroundColor: 'rgba(0, 20, 40, 0.6)',
+                                                border: '2px solid rgba(0, 255, 136, 0.3)',
+                                                borderRadius: '5px',
+                                                color: '#e0f0ff',
+                                                fontFamily: 'inherit',
+                                                resize: 'vertical',
+                                            }}
+                                        />
+                                    </div>
+                                </div>
+                            </section>
+
+                            {/* Outfit Section */}
+                            <section>
+                                <h2 style={{
+                                    color: '#00ff88',
+                                    fontSize: '18px',
+                                    fontWeight: 'bold',
+                                    marginBottom: '15px',
+                                    borderBottom: '2px solid rgba(0, 255, 136, 0.3)',
+                                    paddingBottom: '5px'
+                                }}>
+                                    Outfit
+                                </h2>
+
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                                    <div style={{ display: 'grid', gridTemplateColumns: '2fr 3fr', gap: '15px' }}>
+                                        <div>
+                                            <label
+                                                style={{
+                                                    display: 'block',
+                                                    color: '#00ff88',
+                                                    fontSize: '14px',
+                                                    fontWeight: 'bold',
+                                                    marginBottom: '8px',
+                                                }}
+                                            >
+                                                Selected Outfit
+                                            </label>
+                                            <select
+                                                value={selectedOutfit?.id || ''}
+                                                onChange={(e) => handleSelectOutfit(e.target.value)}
+                                                style={{
+                                                    width: '100%',
+                                                    padding: '12px',
+                                                    fontSize: '14px',
+                                                    backgroundColor: 'rgba(0, 20, 40, 0.6)',
+                                                    border: '2px solid rgba(0, 255, 136, 0.3)',
+                                                    borderRadius: '5px',
+                                                    color: '#e0f0ff',
+                                                    fontFamily: 'inherit',
+                                                    cursor: 'pointer',
+                                                }}
+                                            >
+                                                {editedOutfits.map((outfit) => (
+                                                    <option key={outfit.id} value={outfit.id}>
+                                                        {outfit.name}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
+
+                                        <div>
+                                            <label
+                                                style={{
+                                                    display: 'block',
+                                                    color: '#00ff88',
+                                                    fontSize: '14px',
+                                                    fontWeight: 'bold',
+                                                    marginBottom: '8px',
+                                                }}
+                                            >
+                                                Outfit Name
+                                            </label>
+                                            <TextInput
+                                                fullWidth
+                                                value={selectedOutfit?.name || ''}
+                                                onChange={(e) => handleOutfitChange('name', e.target.value)}
+                                                placeholder="Outfit name"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div style={{ display: 'flex', gap: '10px' }}>
+                                        <Button onClick={handleCreateOutfit}>
+                                            New Outfit
+                                        </Button>
+                                        <Button
+                                            onClick={handleDeleteOutfit}
+                                            variant="secondary"
+                                            disabled={editedOutfits.length <= 1}
+                                        >
+                                            Delete Outfit
+                                        </Button>
+                                    </div>
+
+                                    <div>
+                                        <label
+                                            style={{
+                                                display: 'block',
+                                                color: '#00ff88',
+                                                fontSize: '14px',
+                                                fontWeight: 'bold',
+                                                marginBottom: '8px',
+                                            }}
+                                        >
+                                            Outfit Description
+                                        </label>
+                                        <textarea
+                                            value={selectedOutfit?.description || ''}
+                                            onChange={(e) => handleOutfitChange('description', e.target.value)}
+                                            placeholder="Physical appearance, attire, and distinguishing features for this outfit"
+                                            style={{
+                                                width: '100%',
+                                                minHeight: '100px',
                                                 padding: '12px',
                                                 fontSize: '14px',
                                                 backgroundColor: 'rgba(0, 20, 40, 0.6)',
@@ -712,7 +930,7 @@ export const ActorDetailScreen: FC<ActorDetailScreenProps> = ({ actor, stage, on
                                     gap: '8px'
                                 }}>
                                     <ImageIcon />
-                                    Emotion Images
+                                    Emotion Images ({selectedOutfit?.name || 'Outfit'})
                                 </h2>
                                 
                                 <div style={{ 
@@ -1044,7 +1262,7 @@ export const ActorDetailScreen: FC<ActorDetailScreenProps> = ({ actor, stage, on
                     paddingBottom: '10px',
                     textTransform: 'capitalize',
                 }}>
-                    Manage {imageTargetLabel} Image
+                    Manage {imageTargetLabel} Image - {imageTargetOutfitName}
                 </DialogTitle>
                 <DialogContent style={{ paddingTop: '20px' }}>
                     <div style={{
@@ -1185,7 +1403,7 @@ export const ActorDetailScreen: FC<ActorDetailScreenProps> = ({ actor, stage, on
                                 fontSize: '14px',
                                 lineHeight: 1.6,
                             }}>
-                                Click the image area to select a file, or drag and drop an image to replace the current {String(imageTargetLabel).toLowerCase()} image.
+                                Click the image area to select a file, or drag and drop an image to replace the current {String(imageTargetLabel).toLowerCase()} image for {imageTargetOutfitName}.
                             </div>
                             <Button
                                 onClick={() => {
