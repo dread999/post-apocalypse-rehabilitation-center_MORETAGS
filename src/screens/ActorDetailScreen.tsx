@@ -1310,9 +1310,9 @@ export const ActorDetailScreen: FC<ActorDetailScreenProps> = ({ actor, stage, on
                         display: 'grid',
                         gridTemplateColumns: '1fr 1fr',
                         gap: '20px',
-                        alignItems: 'start'
+                        alignItems: 'stretch'
                     }}>
-                        <div>
+                        <div style={{ display: 'flex' }}>
                             <input
                                 ref={imageUploadInputRef}
                                 type="file"
@@ -1349,7 +1349,8 @@ export const ActorDetailScreen: FC<ActorDetailScreenProps> = ({ actor, stage, on
                                 }}
                                 style={{
                                     width: '100%',
-                                    minHeight: '300px',
+                                    minHeight: '360px',
+                                    height: '100%',
                                     backgroundColor: currentImageUrl ? 'transparent' : 'rgba(0, 20, 40, 0.6)',
                                     border: `2px dashed ${isImageDropActive ? 'rgba(0, 255, 136, 0.8)' : 'rgba(0, 255, 136, 0.35)'}`,
                                     borderRadius: '8px',
@@ -1438,7 +1439,7 @@ export const ActorDetailScreen: FC<ActorDetailScreenProps> = ({ actor, stage, on
                             </div>
                         </div>
 
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', minHeight: '360px' }}>
                             <div style={{
                                 color: '#e0f0ff',
                                 fontSize: '14px',
@@ -1497,14 +1498,14 @@ export const ActorDetailScreen: FC<ActorDetailScreenProps> = ({ actor, stage, on
                             >
                                 {isCurrentImageRegenerating ? 'Generating...' : 'Regenerate Image'}
                             </Button>
+                            <div style={{ marginTop: 'auto' }}>
+                                <Button onClick={handleCloseImageDialog} variant="secondary">
+                                    Close
+                                </Button>
+                            </div>
                         </div>
                     </div>
                 </DialogContent>
-                <DialogActions style={{ padding: '15px 20px' }}>
-                    <Button onClick={handleCloseImageDialog} variant="secondary">
-                        Close
-                    </Button>
-                </DialogActions>
             </Dialog>
 
             <Dialog
