@@ -546,7 +546,14 @@ export async function loadReserveActor(data: any, stage: Stage): Promise<Actor|n
     return newActor;
 }
 
-export async function generateBaseActorImage(actor: Actor, stage: Stage, force: boolean = false, fromAvatar: boolean = true, outfitId: string = ''): Promise<void> {
+export async function generateBaseActorImage(
+    actor: Actor,
+    stage: Stage,
+    force: boolean = false,
+    fromAvatar: boolean = true,
+    outfitId: string = '',
+    sourceImageUrl: string = ''
+): Promise<void> {
     const targetOutfitId = outfitId || actor.outfitId;
     console.log(`Populating images for actor ${actor.name} (ID: ${actor.id})`);
     // If the actor has no neutral emotion image in their emotion pack, generate one based on their description or from the existing avatar image
@@ -558,8 +565,9 @@ export async function generateBaseActorImage(actor: Actor, stage: Stage, force: 
             delete stage.imageGenerationPromises[`actor/${actor.id}`];
         }
         let imageUrl = '';
+        let baseSourceImage = sourceImageUrl || actor.avatarImageUrl || '';
         
-        if (!actor.avatarImageUrl || !fromAvatar) {
+        if (!baseSourceImage || !fromAvatar) {
             console.log(`Generating new image for actor ${actor.name} from description`);
             // Use stage.makeImage to create a neutral expression based on the description
             imageUrl = await stage.makeImage({
@@ -568,11 +576,12 @@ export async function generateBaseActorImage(actor: Actor, stage: Stage, force: 
                     .replace('{{ARTIST}}', stage.getSave().characterArtist || 'some professional'),
                 aspect_ratio: AspectRatio.PHOTO_VERTICAL
             }, '');
+            baseSourceImage = imageUrl || '';
         }
 
         // Use stage.makeImageFromImage to create a base image.
         imageUrl = await stage.makeImageFromImage({
-            image: imageUrl || actor.avatarImageUrl,
+            image: baseSourceImage,
             prompt: (`${ART_PROMPT[stage.getSave().characterArtStyle || 'original']}. Create a waist-up portrait of this character: ${actor.getDescription(targetOutfitId)}. Give them a neutral expression and pose and place them on a light gray background. ` +
                 `Regardless of the description, zoom and crop the image at their waist, but maintain a margin of negative space over their head/hair.`)
                 .replace('{{ARTIST}}', stage.getSave().characterArtist || 'some professional'),

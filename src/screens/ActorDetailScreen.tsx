@@ -17,6 +17,7 @@ interface ActorDetailScreenProps {
 
 export const ActorDetailScreen: FC<ActorDetailScreenProps> = ({ actor, stage, onClose }) => {
     type ImageTarget = 'base' | Emotion;
+    type BaseRegenSource = 'description' | 'avatar' | `outfit:${string}`;
     const initialOutfitIdRef = useRef(actor.outfitId);
 
     const getClonedOutfits = (): Outfit[] => {
@@ -70,6 +71,7 @@ export const ActorDetailScreen: FC<ActorDetailScreenProps> = ({ actor, stage, on
         open: boolean;
         target: ImageTarget | null;
     }>({ open: false, target: null });
+    const [baseRegenSource, setBaseRegenSource] = useState<BaseRegenSource>(() => (actor.avatarImageUrl ? 'avatar' : 'description'));
     const [isImageDropActive, setIsImageDropActive] = useState(false);
     const [isUploadingImage, setIsUploadingImage] = useState(false);
     const [confirmDialog, setConfirmDialog] = useState<{
@@ -249,6 +251,9 @@ export const ActorDetailScreen: FC<ActorDetailScreenProps> = ({ actor, stage, on
 
     const handleOpenImageDialog = (target: ImageTarget) => {
         setImageDialog({ open: true, target });
+        if (target === 'base') {
+            setBaseRegenSource(actor.avatarImageUrl ? 'avatar' : 'description');
+        }
         setIsImageDropActive(false);
     };
 
@@ -304,15 +309,42 @@ export const ActorDetailScreen: FC<ActorDetailScreenProps> = ({ actor, stage, on
         }
     };
 
-    const handleRegenerateBase = async () => {
+    const handleRegenerateBase = async (source: BaseRegenSource) => {
         if (regeneratingImages.has('base')) return;
-        
-        const regenerateBase = async (fromAvatar: boolean) => {
+
+        const hasAvatarUrl = !!actor.avatarImageUrl;
+        const sourceOutfitId = source.startsWith('outfit:') ? source.slice('outfit:'.length) : '';
+        const sourceOutfit = editedOutfits.find((outfit) => outfit.id === sourceOutfitId);
+        const sourceImageUrl = sourceOutfit?.emotionPack?.base || '';
+        const selectedLabel = source === 'avatar'
+            ? 'Original Avatar'
+            : source === 'description'
+                ? 'Description Only'
+                : `Outfit Base: ${sourceOutfit?.name || 'Unknown Outfit'}`;
+
+        if (source === 'avatar' && !hasAvatarUrl) {
+            alert('Original avatar image is not available for this actor.');
+            return;
+        }
+
+        if (source.startsWith('outfit:') && !sourceImageUrl) {
+            alert('The selected outfit does not have a base image.');
+            return;
+        }
+
+        const regenerateBase = async () => {
             setConfirmDialog(prev => ({ ...prev, open: false }));
             setRegeneratingImages(prev => new Set(prev).add('base'));
             
             try {
-                await generateBaseActorImage(actor, stage(), true, fromAvatar, selectedOutfitId);
+                await generateBaseActorImage(
+                    actor,
+                    stage(),
+                    true,
+                    source !== 'description',
+                    selectedOutfitId,
+                    source.startsWith('outfit:') ? sourceImageUrl : ''
+                );
                 syncEditedOutfitsFromActor();
                 // Force a re-render to show the new image
                 forceUpdate({});
@@ -328,40 +360,18 @@ export const ActorDetailScreen: FC<ActorDetailScreenProps> = ({ actor, stage, on
             }
         };
 
-        const hasAvatarUrl = !!actor.avatarImageUrl;
-        
-        if (hasAvatarUrl) {
-            setConfirmDialog({
-                open: true,
-                title: 'Regenerate Base Image',
-                message: 'This will regenerate the base image and may affect all emotion variations. Choose generation method:',
-                actions: [
-                    {
-                        label: 'From Source Image',
-                        onClick: () => regenerateBase(true),
-                        variant: 'primary'
-                    },
-                    {
-                        label: 'From Description',
-                        onClick: () => regenerateBase(false),
-                        variant: 'primary'
-                    }
-                ]
-            });
-        } else {
-            setConfirmDialog({
-                open: true,
-                title: 'Regenerate Base Image',
-                message: 'This will regenerate the base image from the character description and may affect all emotion variations. Continue?',
-                actions: [
-                    {
-                        label: 'Regenerate',
-                        onClick: () => regenerateBase(false),
-                        variant: 'primary'
-                    }
-                ]
-            });
-        }
+        setConfirmDialog({
+            open: true,
+            title: 'Regenerate Base Image',
+            message: `This will regenerate the base image from ${selectedLabel} and may affect all emotion variations. Continue?`,
+            actions: [
+                {
+                    label: 'Regenerate',
+                    onClick: regenerateBase,
+                    variant: 'primary'
+                }
+            ]
+        });
     };
 
     const handleRegenerateDecor = async (moduleType: string) => {
@@ -410,6 +420,15 @@ export const ActorDetailScreen: FC<ActorDetailScreenProps> = ({ actor, stage, on
     const isCurrentImageRegenerating = currentImageKey ? regeneratingImages.has(currentImageKey) : false;
     const imageTargetLabel = imageDialog.target || '';
     const imageTargetOutfitName = selectedOutfit?.name || 'Outfit';
+    const baseRegenOutfitOptions = editedOutfits.filter((outfit) => !!outfit.emotionPack?.base);
+    const baseRegenOptions: Array<{ value: BaseRegenSource; label: string }> = [
+        ...(actor.avatarImageUrl ? [{ value: 'avatar' as BaseRegenSource, label: 'Original Avatar' }] : []),
+        { value: 'description' as BaseRegenSource, label: 'Description Only' },
+        ...baseRegenOutfitOptions.map((outfit) => ({
+            value: `outfit:${outfit.id}` as BaseRegenSource,
+            label: `Outfit Base: ${outfit.name}`,
+        })),
+    ];
 
     return (
         <AnimatePresence>
@@ -1427,12 +1446,48 @@ export const ActorDetailScreen: FC<ActorDetailScreenProps> = ({ actor, stage, on
                             }}>
                                 Click the image area to select a file, or drag and drop an image to replace the current {String(imageTargetLabel).toLowerCase()} image for {imageTargetOutfitName}.
                             </div>
+                            {imageDialog.target === 'base' && (
+                                <div>
+                                    <label
+                                        style={{
+                                            display: 'block',
+                                            color: '#00ff88',
+                                            fontSize: '13px',
+                                            fontWeight: 'bold',
+                                            marginBottom: '8px',
+                                        }}
+                                    >
+                                        Regenerate Source
+                                    </label>
+                                    <select
+                                        value={baseRegenSource}
+                                        onChange={(e) => setBaseRegenSource(e.target.value as BaseRegenSource)}
+                                        style={{
+                                            width: '100%',
+                                            padding: '12px',
+                                            fontSize: '14px',
+                                            backgroundColor: 'rgba(0, 20, 40, 0.6)',
+                                            border: '2px solid rgba(0, 255, 136, 0.3)',
+                                            borderRadius: '5px',
+                                            color: '#e0f0ff',
+                                            fontFamily: 'inherit',
+                                            cursor: 'pointer',
+                                        }}
+                                    >
+                                        {baseRegenOptions.map((option) => (
+                                            <option key={option.value} value={option.value}>
+                                                {option.label}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                            )}
                             <Button
                                 onClick={() => {
                                     const target = imageDialog.target;
                                     if (!target) return;
                                     if (target === 'base') {
-                                        handleRegenerateBase();
+                                        handleRegenerateBase(baseRegenSource);
                                     } else {
                                         handleRegenerateEmotion(target);
                                     }
