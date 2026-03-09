@@ -491,10 +491,10 @@ export const SkitScreen: FC<SkitScreenProps> = ({ stage, setScreenType, isVertic
                 const isInputFocused = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA';
                 
                 // Only handle arrow keys if input is not focused OR input is empty
-                if (e.key === 'ArrowLeft' && (!isInputFocused || inputText.trim() === '')) {
+                if (e.key === 'ArrowLeft' && !isEditingMessage && (!isInputFocused || inputText.trim() === '')) {
                     e.preventDefault();
                     prev();
-                } else if (e.key === 'ArrowRight' && (!isInputFocused || inputText.trim() === '')) {
+                } else if (e.key === 'ArrowRight' && !isEditingMessage && (!isInputFocused || inputText.trim() === '')) {
                     e.preventDefault();
                     next();
                 }

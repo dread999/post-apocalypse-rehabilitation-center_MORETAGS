@@ -948,6 +948,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                             // Kick off outfit portrait generation in the background.
                             generateBaseActorImage(actor, this, false, true, newOutfitId).then(() => {
                                 this.showPriorityMessage(`New appearance for ${actor.name}: "${appearanceData.appearanceName}"`);
+                                this.saveGame();
                                 return generateAdditionalActorImages(actor, this, newOutfitId);
                             }).catch((err) => {
                                 console.error('Error generating images for new appearance outcome:', err);
