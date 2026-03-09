@@ -9,6 +9,7 @@ import { generateSkitScript, SkitData, SkitType, updateCharacterArc } from "./Sk
 import { smartRehydrate } from "./SaveRehydration";
 import { Emotion } from "./actors/Emotion";
 import { assignActorToRole } from "./utils";
+import { v4 as generateUuid } from 'uuid';
 
 type MessageStateType = any;
 type ConfigType = any;
@@ -928,6 +929,33 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
             this.pushToTimeline(save, `${save.currentSkit.type} skit.`, save.currentSkit);
 
             this.generateUncreatedModules();
+
+            // Apply generated appearance outcomes.
+            if (save.currentSkit.endNewAppearances) {
+                save.currentSkit.endNewAppearances.forEach(appearanceData => {
+                    const actor = save.actors[appearanceData.actorId];
+                    if (actor) {
+                        const alreadyExists = actor.outfits.some(outfit => namesMatch(outfit.name, appearanceData.appearanceName));
+                        if (!alreadyExists) {
+                            const newOutfitId = appearanceData.id || generateUuid();
+                            actor.outfits.push({
+                                id: newOutfitId,
+                                name: appearanceData.appearanceName,
+                                description: appearanceData.description,
+                                emotionPack: {},
+                            });
+
+                            // Kick off outfit portrait generation in the background.
+                            generateBaseActorImage(actor, this, false, true, newOutfitId).then(() => {
+                                this.showPriorityMessage(`New appearance for ${actor.name}: "${appearanceData.appearanceName}"`);
+                                return generateAdditionalActorImages(actor, this, newOutfitId);
+                            }).catch((err) => {
+                                console.error('Error generating images for new appearance outcome:', err);
+                            });
+                        }
+                    }
+                });
+            }
 
             // Apply endProperties to actors - find from the final entry with endScene=true
             let endProps: { [actorId: string]: { [stat: string]: number } } = save.currentSkit.endProperties || {};

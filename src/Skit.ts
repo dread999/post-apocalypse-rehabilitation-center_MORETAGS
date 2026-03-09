@@ -43,6 +43,7 @@ export interface SkitData {
     endFactionChanges?: { [actorId: string]: string }; // Faction ID changes to apply when scene ends ('' for PARC)
     endRoleChanges?: { [actorId: string]: string }; // Role changes to apply when scene ends (role name or '' for None)
     endNewModule?: { id: string; moduleName: string; roleName: string; description: string }; // New module to be created post-skit
+    endNewAppearances?: { id: string; actorId: string; appearanceName: string; description: string }[]; // New character appearances to be created post-skit
 }
 
 export function generateSkitTypePrompt(skit: SkitData, stage: Stage, continuing: boolean): string {
@@ -484,8 +485,9 @@ export function generateSkitPrompt(skit: SkitData, stage: Stage, historyLength: 
             const locationString = module ? (module.type === 'quarters' ? (module.ownerId === actor.id ? ' Their Quarters' : (`${save.actors[module.ownerId || ''] || 'Someone'}'s Quarters`)) : module.getAttribute('name')) : 'Unknown';
             const currentOutfitId = currentActorOutfitIds[actor.id] || actor.outfitId;
             const currentOutfit = actor.getOutfitById(currentOutfitId);
+            const otherOutfits = actor.outfits.filter(o => o.id !== currentOutfitId && o.emotionPack['neutral']);
             return `  ${actor.name}\n    Current Appearance (${currentOutfit.name}): ${actor.getDescription(currentOutfitId)}\n` +
-                (actor.outfits.length > 1 ? `    Other Appearances: ${actor.outfits.filter(o => o.id !== currentOutfit.id).map(o => o.name).join(', ')}\n` : '') +
+                (otherOutfits.length > 0 ? `    Other Appearances: ${otherOutfits.map(o => o.name).join(', ')}\n` : '') +
                 `    Profile: ${actor.profile}\n    Role: ${roleModule?.getAttribute('role') || 'Patient'}\n    Location: ${locationString}`;
         }).join('\n')}` +
         // List away characters for reference; just need description and profile:
@@ -497,8 +499,9 @@ export function generateSkitPrompt(skit: SkitData, stage: Stage, historyLength: 
             const atFaction = save.factions[actor.locationId];
             const currentOutfitId = currentActorOutfitIds[actor.id] || actor.outfitId;
             const currentOutfit = actor.getOutfitById(currentOutfitId);
+            const otherOutfits = actor.outfits.filter(o => o.id !== currentOutfitId && o.emotionPack['neutral']);
             return `  ${actor.name}\n    Current Appearance (${currentOutfit.name}): ${actor.getDescription(currentOutfitId)}\n` +
-                (actor.outfits.length > 1 ? `    Other Appearances: ${actor.outfits.filter(o => o.id !== currentOutfit.id).map(o => o.name).join(', ')}\n` : '') +
+                (otherOutfits.length > 0 ? `    Other Appearances: ${otherOutfits.map(o => o.name).join(', ')}\n` : '') +
                 `    Profile: ${actor.profile}\n    Role: ${roleModule?.getAttribute('role') || 'Patient'}\n    On Assignment to: ${atFaction?.name || 'Unknown Faction'}`;
         }).join('\n')}` +
         // List cryo characters for reference; just need description and profile:
@@ -507,8 +510,9 @@ export function generateSkitPrompt(skit: SkitData, stage: Stage, historyLength: 
             const entranceDate = entranceEvent ? entranceEvent.day : stage.getSave().day;
             const currentOutfitId = currentActorOutfitIds[actor.id] || actor.outfitId;
             const currentOutfit = actor.getOutfitById(currentOutfitId);
+            const otherOutfits = actor.outfits.filter(o => o.id !== currentOutfitId && o.emotionPack['neutral']);
             return `  ${actor.name}\n    Current Appearance (${currentOutfit.name}): ${actor.getDescription(currentOutfitId)}\n` +
-                (actor.outfits.length > 1 ? `    Other Appearances: ${actor.outfits.filter(o => o.id !== currentOutfit.id).map(o => o.name).join(', ')}\n` : '') +
+                (otherOutfits.length > 0 ? `    Other Appearances: ${otherOutfits.map(o => o.name).join(', ')}\n` : '') +
                 `    Profile: ${actor.profile}\n    Days in Cryo: ${save.day - entranceDate}`;
         }).join('\n')}` : '') +
         // List stat meanings, for reference:
@@ -550,8 +554,9 @@ export function generateSkitPrompt(skit: SkitData, stage: Stage, historyLength: 
             const birthDay = save.timeline?.find(event => event.skit?.actorId === actor.id && event.skit?.type === SkitType.INTRO_CHARACTER)?.day || save.day;
             const currentOutfitId = currentActorOutfitIds[actor.id] || actor.outfitId;
             const currentOutfit = actor.getOutfitById(currentOutfitId);
+            const otherOutfits = actor.outfits.filter(o => o.id !== currentOutfitId && o.emotionPack['neutral']);
             return `  ${actor.name}\n    Current Appearance (${currentOutfit.name}): ${actor.getDescription(currentOutfitId)}\n` +
-                (actor.outfits.length > 1 ? `    Other Appearances: ${actor.outfits.filter(o => o.id !== currentOutfit.id).map(o => o.name).join(', ')}\n` : '') +
+                (otherOutfits.length > 0 ? `    Other Appearances: ${otherOutfits.map(o => o.name).join(', ')}\n` : '') +
                 `    Profile: ${actor.profile}\n    Character Arc: ${actor.characterArc}\n    Days Aboard: ${save.day - birthDay}\n` +
                 (roleModule ? `    Role: ${roleModule.getAttribute('role') || 'Patient'} (${actor.heldRoles[roleModule.getAttribute('role') || 'Patient'] || 0} days)\n` : '') +
                 `    Role Description: ${roleModule?.getAttribute('roleDescription') || 'This character has no assigned role aboard the PARC. They are to focus upon their own needs.'}\n` +
@@ -981,6 +986,13 @@ export async function generateSkitScript(skit: SkitData, stage: Stage): Promise<
                             `[NEW MODULE: Lounge | ROLE Social Coordinator | DESCRIPTION A comfortable lounge area for relaxation and socialization among staff and patients.]\n` +
                             `This tag allows the game engine to create new modules dynamically based on scene events, expanding the station's capabilities and accommodating character roles as needed.\n` +
 
+                            `\n#New Appearance Definition:#\n` +
+                            `If the scene establishes a new look for a character (for example, a marked physical change) or suggests the need for an alternative appearance (such as a new uniform), output this tag:\n` +
+                            `[NEW APPEARANCE: <characterName> | NAME <appearanceName> | DESCRIPTION <physicalDescription>]\n` +
+                            `Full Example:\n` +
+                            `[NEW APPEARANCE: ${Object.values(stage.getSave().actors)[0].name} | NAME Mission Armor | DESCRIPTION Reinforced tactical plating over a dark undersuit with compact shoulder lights and weathered gloves.]\n` +
+                            `The DESCRIPTION should focus on concise physical details, including intrinsic character details: body type, skin tone, hair style, eye color, etc., in addition to clothing elements and accessories.\n` +
+
                             `\n\Core Instruction:\n` +
                             `Closely analyze the scene and output all suitable tags in this response. Stat changes should be a fair reflection of the scene's direct or implied events. ` +
                             `Bear in mind the somewhat abstract nature of character and station stats when determining reasonable changes. ` +
@@ -1119,6 +1131,46 @@ export async function generateSkitScript(skit: SkitData, stage: Stage): Promise<
                                             };
                                             console.log(`Adding new module: ${moduleName} (Role: ${roleName})`);
                                         }
+                                    }
+                                    continue;
+                                }
+
+                                // Process NEW APPEARANCE tags: [NEW APPEARANCE: <characterName> | NAME <appearanceName> | DESCRIPTION <description>]
+                                if (trimmed.toUpperCase().startsWith('[NEW APPEARANCE:')) {
+                                    console.log('Processing NEW APPEARANCE tag:', trimmed);
+                                    const newAppearanceRegex = /\[NEW APPEARANCE:\s*([^|]+)\|\s*NAME\s+([^|]+)\|\s*DESCRIPTION\s+([^\]]+)\]/i;
+                                    const newAppearanceMatch = newAppearanceRegex.exec(trimmed);
+                                    if (newAppearanceMatch) {
+                                        const characterName = newAppearanceMatch[1].trim();
+                                        const appearanceName = newAppearanceMatch[2].trim();
+                                        const appearanceDescription = newAppearanceMatch[3].trim();
+
+                                        const allActors = Object.values(stage.getSave().actors);
+                                        const matchedActor = findBestNameMatch(characterName, allActors);
+                                        if (!matchedActor) {
+                                            console.warn(`Could not find actor for NEW APPEARANCE tag: ${characterName}`);
+                                            continue;
+                                        }
+
+                                        const similarOutfit = findBestNameMatch(
+                                            appearanceName,
+                                            matchedActor.outfits.map(outfit => ({ name: outfit.name, outfit }))
+                                        );
+                                        if (similarOutfit) {
+                                            console.log(`Detected similar existing appearance "${similarOutfit.outfit.name}" for ${matchedActor.name}; skipping addition.`);
+                                            continue;
+                                        }
+
+                                        if (!skit.endNewAppearances) {
+                                            skit.endNewAppearances = [];
+                                        }
+                                        skit.endNewAppearances.push({
+                                            id: generateUuid(),
+                                            actorId: matchedActor.id,
+                                            appearanceName: appearanceName,
+                                            description: appearanceDescription,
+                                        });
+                                        console.log(`Adding new appearance "${appearanceName}" for ${matchedActor.name}`);
                                     }
                                     continue;
                                 }

@@ -294,9 +294,10 @@ const SkitOutcomeDisplay: FC<SkitOutcomeDisplayProps> = ({ skitData, stage, layo
     const factionChanges = processFactionChanges();
     const offStationChanges = processOffStationChanges();
     const newModule = skitData.endNewModule;
+    const newAppearances = skitData.endNewAppearances;
 
     // Don't render if there's nothing to display
-    if (characterChanges.length === 0 && factionReputationChanges.length === 0 && roleChanges.length === 0 && factionChanges.length === 0 && offStationChanges.length === 0 && !newModule) {
+    if (characterChanges.length === 0 && factionReputationChanges.length === 0 && roleChanges.length === 0 && factionChanges.length === 0 && offStationChanges.length === 0 && !newModule && (!newAppearances || newAppearances.length === 0)) {
         return null;
     }
 
@@ -1467,6 +1468,75 @@ const SkitOutcomeDisplay: FC<SkitOutcomeDisplayProps> = ({ skitData, stage, layo
                     </motion.div>
                 </div>
             )}
+
+            {/* New Appearance Research */}
+            {(newAppearances || []).map((newAppearance, appearanceIndex) => (
+                    <div key={`new_appearance_${newAppearance.id || appearanceIndex}`}>
+                    <motion.div
+                        initial={{ opacity: 0, y: 30 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.4, delay: 0.6 + characterChanges.length * 0.2 + factionReputationChanges.length * 0.2 + roleChanges.length * 0.2 + factionChanges.length * 0.2 + offStationChanges.length * 0.2 + (newModule ? 0.2 : 0) + appearanceIndex * 0.15 }}
+                    >
+                        <Paper
+                            elevation={6}
+                            sx={{
+                                background: 'linear-gradient(135deg, rgba(16,185,129,0.15) 0%, rgba(6,182,212,0.22) 50%, rgba(14,165,233,0.12) 100%)',
+                                border: '2px solid rgba(16,185,129,0.35)',
+                                borderRadius: 3,
+                                p: 2,
+                                backdropFilter: 'blur(8px)',
+                                textAlign: 'center'
+                            }}
+                        >
+                            <Typography
+                                variant="h6"
+                                sx={{
+                                    fontWeight: 800,
+                                    color: '#10b981',
+                                    textTransform: 'uppercase',
+                                    letterSpacing: '1px',
+                                    textShadow: '0 2px 4px rgba(0,0,0,0.8)',
+                                    mb: 1
+                                }}
+                            >
+                                New Appearance Added
+                            </Typography>
+                            <Typography
+                                sx={{
+                                    fontSize: '1.1rem',
+                                    fontWeight: 700,
+                                    color: '#fff',
+                                    textShadow: '0 2px 4px rgba(0,0,0,0.8)',
+                                    mb: 1
+                                }}
+                            >
+                                {stage.getSave().actors[newAppearance.actorId]?.name || 'Unknown'}: {newAppearance.appearanceName}
+                            </Typography>
+                            <Box
+                                sx={{
+                                    padding: '12px',
+                                    background: 'rgba(16,185,129,0.1)',
+                                    borderRadius: '12px',
+                                    border: '1px solid rgba(16,185,129,0.25)'
+                                }}
+                            >
+                                <Typography
+                                    sx={{
+                                        fontSize: '0.95rem',
+                                        fontWeight: 500,
+                                        color: '#d1fae5',
+                                        lineHeight: 1.6,
+                                        textAlign: 'left',
+                                        textShadow: '0 1px 2px rgba(0,0,0,0.6)'
+                                    }}
+                                >
+                                    {newAppearance.description}
+                                </Typography>
+                            </Box>
+                        </Paper>
+                    </motion.div>
+                </div>
+            ))}
             </Box>
         </motion.div>
     );

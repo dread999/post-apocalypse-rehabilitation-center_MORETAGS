@@ -1188,6 +1188,8 @@ export const SkitScreen: FC<SkitScreenProps> = ({ stage, setScreenType, isVertic
             stageSkit.endProperties = undefined;
             stageSkit.endFactionChanges = undefined;
             stageSkit.endRoleChanges = undefined;
+            stageSkit.endNewModule = undefined;
+            stageSkit.endNewAppearances = undefined;
             setSceneEnded(false);
         }
     }
