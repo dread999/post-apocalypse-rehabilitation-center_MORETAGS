@@ -589,6 +589,8 @@ export async function generateSkitScript(skit: SkitData, stage: Stage): Promise<
                     `CHARACTER NAME: [CHARACTER NAME moves to HERE] Character Name enters the room with a wave.\n` +
                     `CHARACTER NAME: Character greets you, "Hey; just checking in. I was absent a moment ago, so a [x moves to y] tag was necessary before I could speak in the scene. I'll be next door if you need anything."\n` +
                     `NARRATOR: [CHARACTER NAME moves to MODULE NAME] Character Name ducks out with a smile. You hear their boots fade away down the corridor beyond.\n\n` +
+                `Example Character Starting Appearance Format:\n` +
+                    `NARRATOR: [CHARACTER NAME wears APPEARANCE NAME] The doors open on Character Name as they lounge in their favorite outfit.\n\n` +
                 `Example Character Appearance Change Format:\n` +
                     `NARRATOR: [CHARACTER NAME wears PAJAMAS] Character Name enters, already prepped for bedtime.\n\n` +
                 `Example Character Departure from PARC Format:\n` +
@@ -607,7 +609,9 @@ export async function generateSkitScript(skit: SkitData, stage: Stage): Promise<
                 `\n\nTag Instruction:\n` +
                 `  Embedded within this script, you may employ special tags to trigger various game mechanics. ` +
                 `\n\n  Emotion tags ("[CHARACTER NAME expresses JOY]") should be used to indicate visible emotional shifts in a character's appearance using a single-word emotion name. ` +
-                `\n\n  Appearance tags ("[CHARACTER NAME wears APPEARANCE NAME]") should be used when a character changes appearance. Give especial consideration to the beginning of a scene (while establishing a character's current appearance) or as a character enters. Each character has unique appearances; APPEARANCE NAME must be one listed for the specified character. ` +
+                `\n\n  Appearance tags ("[CHARACTER NAME wears APPEARANCE NAME]") should be used when a character changes appearance. ` +
+                    `When establishing a character at the beginning of a scene or when moving to this location with a movement tag, give special consideration to the inclusion of a 'wears' tag to explicitly call out an appropriate look. ` +
+                    `APPEARANCE NAME must be found under the specified character—either their current appearance or one of their listed alternatives. ` +
                 `\n\n  A Character movement tag ("[CHARACTER NAME moves to LOCATION]") must be used when an Absent Character enters the scene. ` +
                 `\n\n  Character movement tags ("[CHARACTER NAME moves to LOCATION]") must also be included when a character leaves the scene or moves to a different module on the station. ` +
                 `\n\n  Character movement tags ("[CHARACTER NAME moves to LOCATION]") are also used to move a character to another faction, abstractly representing any faction mission or time away. ` +
