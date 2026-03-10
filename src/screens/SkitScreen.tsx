@@ -492,9 +492,11 @@ export const SkitScreen: FC<SkitScreenProps> = ({ stage, setScreenType, isVertic
                 
                 // Only handle arrow keys if input is not focused OR input is empty
                 if (e.key === 'ArrowLeft' && !isEditingMessage && (!isInputFocused || inputText.trim() === '')) {
+                    console.log(`Left arrow pressed; going to previous message. ${isEditingMessage}`);
                     e.preventDefault();
                     prev();
                 } else if (e.key === 'ArrowRight' && !isEditingMessage && (!isInputFocused || inputText.trim() === '')) {
+                    console.log(`Right arrow pressed; going to next message. ${isEditingMessage}`);
                     e.preventDefault();
                     next();
                 }
@@ -537,6 +539,7 @@ export const SkitScreen: FC<SkitScreenProps> = ({ stage, setScreenType, isVertic
                 setFinishTyping(false);
                 // Exit edit mode when navigating to a different message
                 if (isEditingMessage) {
+                    console.log('Exit edit mode 3');
                     setIsEditingMessage(false);
                     setOriginalMessage('');
                 }
@@ -1219,6 +1222,7 @@ export const SkitScreen: FC<SkitScreenProps> = ({ stage, setScreenType, isVertic
                 setDisplayMessage(formatMessage(editedMessage, matchingActor));
             }
         }
+        console.log('Exit edit mode 1');
         setIsEditingMessage(false);
         setOriginalMessage('');
     }
@@ -1226,6 +1230,7 @@ export const SkitScreen: FC<SkitScreenProps> = ({ stage, setScreenType, isVertic
     // Handle canceling edit
     function handleCancelEdit() {
         setEditedMessage(originalMessage);
+        console.log('Exit edit mode 2');
         setIsEditingMessage(false);
         setOriginalMessage('');
     }
