@@ -458,7 +458,7 @@ export function generateSkitPrompt(skit: SkitData, stage: Stage, historyLength: 
     let fullPrompt = `{{messages}}\nPremise:\nThis is a sci-fi visual novel game set on a space station that resurrects and rehabilitates patients who died in other universes' apocalypses: ` +
         `the Post-Apocalypse Rehabilitation Center. ` +
         `The thrust of the game positions the player character, ${playerName}, as the Director of the PARC station, interacting with patients and crew as they navigate this complex futuristic universe together. ` +
-        `The PARC is an isolated station near a black hole, from which it pulls and reconsitutes the echoes of apocalypse victims. It serves as both sanctuary and containment for its diverse inhabitants, who hail from various alternate realities. ` +
+        `The PARC is an isolated station near a black hole, from which it pulls and reconstitutes the echoes of apocalypse victims. It serves as both sanctuary and containment for its diverse inhabitants, who hail from various alternate realities. ` +
         `${playerName} is the only non-patient aboard the station (although they may hire patients on as crew or staff); as a result, the station may feel a bit lonely or alienating at times. ` +
         `Much of the day-to-day maintenance and operation of the station is automated by the station's AI, ${save.aide.name || 'StationAide™'}, and various drones, enabling ${playerName} to focus on patient care and rehabilitation.` +
         `\n\nNarrative Tone:\n${save.tone || stage.TONE_MAP['Original']}` +
@@ -501,7 +501,7 @@ export function generateSkitPrompt(skit: SkitData, stage: Stage, historyLength: 
             const currentOutfit = actor.getOutfitById(currentOutfitId);
             const otherOutfits = actor.outfits.filter(o => o.id !== currentOutfitId && o.emotionPack['neutral']);
             return `  ${actor.name}\n    Current Appearance (${currentOutfit.name}): ${actor.getDescription(currentOutfitId)}\n` +
-                (otherOutfits.length > 0 ? `    Other Appearances: ${otherOutfits.map(o => o.name).join(', ')}\n` : '') +
+                // (otherOutfits.length > 0 ? `    Other Appearances: ${otherOutfits.map(o => o.name).join(', ')}\n` : '') + // Unnecessary for absent characters
                 `    Profile: ${actor.profile}\n    Role: ${roleModule?.getAttribute('role') || 'Patient'}\n    On Assignment to: ${atFaction?.name || 'Unknown Faction'}`;
         }).join('\n')}` +
         // List cryo characters for reference; just need description and profile:
@@ -512,7 +512,7 @@ export function generateSkitPrompt(skit: SkitData, stage: Stage, historyLength: 
             const currentOutfit = actor.getOutfitById(currentOutfitId);
             const otherOutfits = actor.outfits.filter(o => o.id !== currentOutfitId && o.emotionPack['neutral']);
             return `  ${actor.name}\n    Current Appearance (${currentOutfit.name}): ${actor.getDescription(currentOutfitId)}\n` +
-                (otherOutfits.length > 0 ? `    Other Appearances: ${otherOutfits.map(o => o.name).join(', ')}\n` : '') +
+                // (otherOutfits.length > 0 ? `    Other Appearances: ${otherOutfits.map(o => o.name).join(', ')}\n` : '') + // Unnecessary for cryo characters
                 `    Profile: ${actor.profile}\n    Days in Cryo: ${save.day - entranceDate}`;
         }).join('\n')}` : '') +
         // List stat meanings, for reference:
@@ -582,25 +582,27 @@ export async function generateSkitScript(skit: SkitData, stage: Stage): Promise<
         try {
             const fullPrompt = generateSkitPrompt(skit, stage, 5 + retries * 5, // Start with lots of history, reducing each iteration.
                 `Example Script Format:\n` +
-                    `CHARACTER NAME: Character Name does some actions in prose; for example, they may be waving to you, the player. They say, "My dialogue is in quotation marks."\n` +
-                    `CHARACTER NAME: [CHARACTER NAME expresses PRIDE] "A character can have two entries in a row, if they have more to say or do or it makes sense to break up a lot of activity."\n` +
-                    `ANOTHER CHARACTER NAME: [ANOTHER CHARACTER NAME expresses JOY][CHARACTER NAME expresses SURPRISE] ` +
+                    `  CHARACTER NAME: Character Name does some actions in prose; for example, they may be waving to you, the player. They say, "My dialogue is in quotation marks."\n` +
+                    `  CHARACTER NAME: [CHARACTER NAME expresses PRIDE] "A character can have two entries in a row, if they have more to say or do or it makes sense to break up a lot of activity."\n` +
+                    `  ANOTHER CHARACTER NAME: [ANOTHER CHARACTER NAME expresses JOY][CHARACTER NAME expresses SURPRISE] ` +
                         `"Other character expressions can update in each other's entries—say, if they're reacting to something the speaker says—, but only one character can speak per entry."\n` +
-                    `CHARACTER NAME: They nod in agreement, "If there's any dialogue at all, the entry must be attributed to the character speaking."\n` +
-                    `NARRATOR: [CHARACTER NAME expresses RELIEF] Descriptive content or other scene events occurring around you, the player, can be attributed to NARRATOR. Dialogue cannot be included in NARRATOR entries.\n` +
-                    (stage.getSave().disableImpersonation ? '' : `${stage.getSave().player.name.toUpperCase()}: "Hey, Character Name," I greet them warmly. I'm the player, and my entries use first-person narrative voice, while all other skit entries use second-person to refer to me.\n`) +
+                    `  CHARACTER NAME: They nod in agreement, "If there's any dialogue at all, the entry must be attributed to the character speaking."\n` +
+                    `  NARRATOR: [CHARACTER NAME expresses RELIEF] Descriptive content or other scene events occurring around you, the player, can be attributed to NARRATOR. Dialogue cannot be included in NARRATOR entries.\n` +
+                    (stage.getSave().disableImpersonation ? '' : `  ${stage.getSave().player.name.toUpperCase()}: "Hey, Character Name," I greet them warmly. I'm the player, and my entries use first-person narrative voice, while all other skit entries use second-person to refer to me.\n`) +
                     `\n` +
                 `Example Character Movement Format:\n` +
-                    `CHARACTER NAME: [CHARACTER NAME moves to HERE] Character Name enters the room with a wave.\n` +
-                    `CHARACTER NAME: Character greets you, "Hey; just checking in. I was absent a moment ago, so a [x moves to y] tag was necessary before I could speak in the scene. I'll be next door if you need anything."\n` +
-                    `NARRATOR: [CHARACTER NAME moves to MODULE NAME] Character Name ducks out with a smile. You hear their boots fade away down the corridor beyond.\n\n` +
+                    `  CHARACTER NAME: [CHARACTER NAME moves to HERE] Character Name enters the room with a wave.\n` +
+                    `  CHARACTER NAME: Character greets you, "Hey; just checking in. I was absent a moment ago, so a [x moves to y] tag was necessary before I could speak in the scene. I'll be next door if you need anything."\n` +
+                    `  NARRATOR: [CHARACTER NAME moves to MODULE NAME] Character Name ducks out with a smile. You hear their boots fade away down the corridor beyond.\n\n` +
                 (skit.script.length == 0 ? `Example Initial Appearance Establishing Format:\n` +
-                    `NARRATOR: [CHARACTER NAME wears CLUB FIT][ANOTHER CHARACTER wears FORMAL ATTIRE] The doors open on Character Name and Another Character as they lounge in their favorite outfits.\n\n` : '') +
+                    `  NARRATOR: [CHARACTER NAME wears CLUB FIT][ANOTHER CHARACTER wears FORMAL ATTIRE] The doors open on Character Name and Another Character as they lounge in their favorite outfits.\n\n` : '') +
                 `Example Character Appearance Change Format:\n` +
-                    `NARRATOR: [CHARACTER NAME wears PAJAMAS] Character Name enters, already prepped for bedtime.\n\n` +
+                    `  NARRATOR: [CHARACTER NAME wears PAJAMAS] Character Name enters, already prepped for bedtime.\n\n` +
                 `Example Character Departure from PARC Format:\n` +
-                    `CHARACTER NAME: They sigh profoundly. "Well, I suppose this is goodbye for now." They wave as they somberly step through the bulkhead.\n` +
-                    `NARRATOR: [CHARACTER NAME moves to FACTION NAME] You watch on-screen as Character Name's shuttle detaches from the PARC and disappears into the stars.\n` +
+                    `  CHARACTER NAME: They sigh profoundly. "Well, I suppose this is goodbye for now." They wave as they somberly step through the bulkhead.\n` +
+                    `  NARRATOR: [CHARACTER NAME moves to FACTION NAME] You watch on-screen as Character Name's shuttle detaches from the PARC and disappears into the stars.\n\n` +
+                `Example Multi-Tag Usage Format:\n` +
+                    `  CHARACTER NAME: [CHARACTER NAME expresses JOY][CHARACTER NAME moves to HERE][CHARACTER NAME wears CHEERLEADING UNIFORM]Character Name bursts into the room with a huge grin. "Hey, I just had to come see you! I'm so happy to be here!"\n\n` +
                 `Current Scene Script Log to Continue:\n${buildScriptLog(skit, [], stage)}` +
                 `\n\nPrimary Instruction:\n` +
                 `  ${skit.script.length == 0 ? 'Produce the initial moments of a scene (perhaps joined in medias res)' : 'Extend or conclude the current scene script'} with three to five entries, ` +
@@ -621,7 +623,7 @@ export async function generateSkitScript(skit: SkitData, stage: Stage): Promise<
                 `\n\n  A Character movement tag ("[CHARACTER NAME moves to LOCATION]") must be used when an Absent Character enters the scene. ` +
                 `\n\n  Character movement tags ("[CHARACTER NAME moves to LOCATION]") must also be included when a character leaves the scene or moves to a different module on the station. ` +
                 `\n\n  Character movement tags ("[CHARACTER NAME moves to LOCATION]") are also used to move a character to another faction, abstractly representing any faction mission or time away. ` +
-                `\n\n  A Scene movement tag ("[SCENE MOVES to MODULE NAME]") may be used when the scene itself transitions to another module. ` +
+                `\n\n  A Scene movement tag ("[SCENE moves to LOCATION]") may be used when the scene itself transitions to another module. ` +
                 `When this tag is used, all characters currently present in the scene are treated as relocating together. ` +
                 `\n\n  For all Character movement tags, LOCATION should be the name of an existing module type (e.g., 'comms', 'infirmary', 'lounge'), a character's quarters (e.g., 'Susan's quarters' or just 'quarters' for their own), or simply "Here" to move to the scene's location or "Another module" to leave this area. ` +
                 `If a faction name is used for the LOCATION, it indicates that the character is departing from the PARC itself, typically to visit a faction or engage in a mission or job on that faction's behalf (use the faction name as the location, even when the job is not "at" the faction). ` +
@@ -896,12 +898,12 @@ export async function generateSkitScript(skit: SkitData, stage: Stage): Promise<
                         `Scene Script for Analysis:\n${buildScriptLog(skit, scriptEntries, stage)}` +
                         `\n\nInstruction:\nAnalyze the preceding scene script and determine whether the final moments make for a suitable ending to the scene. ` +
                         `If the scene feels complete or has reached a good suspended moment, output "[END SCENE]" followed by a "[SUMMARY: ...]" tag with a brief summary of the entire scene's key events or outcomes. ` +
-                        `If the scene does not feel complete, output "[CONTINUE SCENE]" and "[SUMMARY: ...]" tag with a brief explanation of what is missing or what could be developed further to reach a satisfying conclusion. `);
+                        `If the scene does not feel complete, output "[CONTINUE SCENE]" and "[SUMMARY: ...]" tag with a brief explanation of what is missing or what could be developed further to reach a satisfying conclusion. `) +
                         `Example Response:\n` +
                         `[END SCENE]\n[SUMMARY: A faction representative visits the PARC to make an offer to a patient, which they accept, leading to the patient's departure from the station to join that faction permanently.]\n\n` +
                         `Example Response:\n` +
-                        `[CONTINUE SCENE]\n[SUMMARY: The scene has a promising setup with the faction representative's visit and offer, but it would benefit from further development of the patient's internal conflict and decision-making process before accepting the offer, as well as more dialogue to flesh out the interaction between the patient and the representative.]`
-                        const endResponse = await stage.generator.textGen({
+                        `[CONTINUE SCENE]\n[SUMMARY: The scene has a promising setup with the faction representative's visit and offer, but it would benefit from further development of the patient's internal conflict and decision-making process before accepting the offer, as well as more dialogue to flesh out the interaction between the patient and the representative.]`;
+                    const endResponse = await stage.generator.textGen({
                         prompt: endPrompt,
                         min_tokens: 1,
                         max_tokens: 150,
@@ -1004,7 +1006,15 @@ export async function generateSkitScript(skit: SkitData, stage: Stage): Promise<
                             `[NEW APPEARANCE: ${Object.values(stage.getSave().actors)[0].name} | NAME Mission Armor | DESCRIPTION Reinforced tactical plating over a dark undersuit with compact shoulder lights and weathered gloves.]\n` +
                             `The DESCRIPTION should focus on concise physical details, including intrinsic character details: body type, skin tone, hair style, eye color, etc., in addition to clothing elements and accessories.\n` +
 
-                            `\n\Core Instruction:\n` +
+                            (!summary.trim() ?
+                                    `\n#Summary:#\n` +
+                                    `Finally, provide a brief summary of the scene's key events and outcomes in a "[SUMMARY: ...]" tag, which can be used for future reference in the game or by the player. ` +
+                                    `This should be a concise distillation of the most important developments in the scene, ideally in a single sentence or two. ` +
+                                    `Full Example:\n` +
+                                    `[SUMMARY: A faction representative visits the PARC to make an offer to a patient, which they accept, leading to the patient's departure from the station to join that faction permanently.]\n\n`
+                                :
+                                    '') +
+                            `\nCore Instruction:\n` +
                             `Closely analyze the scene and output all suitable tags in this response. Stat changes should be a fair reflection of the scene's direct or implied events. ` +
                             `Bear in mind the somewhat abstract nature of character and station stats when determining reasonable changes. ` +
                             `All stats (station and character) exist on a scale of 1-10, with 1 being the lowest and 10 being the highest possible value; ` +
@@ -1015,7 +1025,7 @@ export async function generateSkitScript(skit: SkitData, stage: Stage): Promise<
                         const requestAnalysis = await stage.generator.textGen({
                             prompt: analysisPrompt, // + (stage.betaMode ? '%%%TOOLS%%%\n\nMake tool calls for appropriate stat changes.\n\n' : ''),
                             min_tokens: 50,
-                            max_tokens: 500, //stage.betaMode ? 1500 : (summary ? 300 : 500),
+                            max_tokens: (summary ? 500 : 600),
                             include_history: true,
                             stop: ['[END]'],
                         });
@@ -1190,6 +1200,11 @@ export async function generateSkitScript(skit: SkitData, stage: Stage): Promise<
                                     }
                                     continue;
                                 }
+
+                                // Process summary tags, if found
+                                const summaryMatch = /\[SUMMARY:\s*([^\]]+)\]/i.exec(trimmed);
+                                summary = summaryMatch ? summaryMatch[1].trim() : '';
+                                console.log('Model determined scene should end. Summary:', summary);
 
                                 // Process movement tags using the shared function
                                 const movementResult = processMovementTag(trimmed.slice(1, -1), stage, skit);
