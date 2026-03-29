@@ -1068,7 +1068,7 @@ export const SkitScreen: FC<SkitScreenProps> = ({ stage, setScreenType, isVertic
                                 <TypeOut
                                     key={messageKey}
                                     speed={typeOutSpeed}
-                                    finishTyping={finishTyping}
+                                    finishTyping={typeOutSpeed <= 0 || finishTyping}
                                     onTypingComplete={() => setFinishTyping(true)}
                                 >
                                     {displayMessage}

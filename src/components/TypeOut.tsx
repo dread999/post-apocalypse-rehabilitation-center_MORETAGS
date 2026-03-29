@@ -102,7 +102,6 @@ export const TypeOut: React.FC<TypeOutProps> = ({
     
     const textContent = React.useMemo(() => extractTextContent(children), [children]);
     const prevTextContentRef = React.useRef<string>('');
-    const prevSpeedRef = React.useRef<number>(speed);
     const onTypingCompleteRef = React.useRef(onTypingComplete);
     
     // Keep the callback ref up to date without causing re-renders
@@ -118,14 +117,6 @@ export const TypeOut: React.FC<TypeOutProps> = ({
             setFinished(false);
 
             if (!textContent) {
-                setFinished(true);
-                onTypingCompleteRef.current?.();
-                return;
-            }
-
-            // If speed is 0 or less, render full text immediately.
-            if (speed <= 0) {
-                setDisplayLength(textContent.length);
                 setFinished(true);
                 onTypingCompleteRef.current?.();
                 return;
@@ -156,22 +147,6 @@ export const TypeOut: React.FC<TypeOutProps> = ({
             };
         }
     }, [textContent, speed]);
-
-    // If speed changes from positive to 0 or less mid-animation, finish immediately.
-    React.useEffect(() => {
-        const previousSpeed = prevSpeedRef.current;
-        prevSpeedRef.current = speed;
-
-        if (previousSpeed > 0 && speed <= 0 && !finished && textContent.length > 0) {
-            if (timerRef.current !== null) {
-                clearInterval(timerRef.current);
-                timerRef.current = null;
-            }
-            setDisplayLength(textContent.length);
-            setFinished(true);
-            onTypingCompleteRef.current?.();
-        }
-    }, [speed, finished, textContent.length]);
 
     // Effect to handle finishTyping prop
     React.useEffect(() => {
