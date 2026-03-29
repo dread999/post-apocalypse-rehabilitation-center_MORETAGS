@@ -50,6 +50,7 @@ export type SaveType = {
     characterArtStyle?: ArtStyle;
     characterArtist?: string;
     attenuation?: string;
+    typeOutSpeed?: number;
     reserveActors?: Actor[];
     language?: string;
     tone?: string;
@@ -75,6 +76,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
     readonly MAX_FACTIONS = 5;
     readonly FETCH_AT_TIME = 10;
     readonly MAX_PAGES = 200;
+    readonly DEFAULT_TYPE_OUT_SPEED = 20;
     readonly bannedTagsDefault = [
         'FUZZ',
         'child',
@@ -202,7 +204,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                 description: `Your holographic assistant is acutely familiar with the technical details of your Post-Apocalypse Rehabilitation Center, so you don't have to be! ` +
                 `Your StationAide™ comes pre-programmed with a friendly and non-condescending demeanor that will leave you feeling empowered and never patronized; ` +
                 `your bespoke projection comes with an industry-leading feminine form in a pleasing shade of default blue, but, as always, StationAide™ remains infinitely customizable to suit your tastes.`}, 
-            echoes: [], actors: {}, factions: {}, layout: layout, day: 1, turn: 0, currentSkit: undefined, reserveActors: [], emotionPrompts: getDefaultEmotionPromptMap() };
+            echoes: [], actors: {}, factions: {}, layout: layout, day: 1, turn: 0, currentSkit: undefined, typeOutSpeed: this.DEFAULT_TYPE_OUT_SPEED, reserveActors: [], emotionPrompts: getDefaultEmotionPromptMap() };
 
         // ensure at least one save exists and has a layout
         if (!this.saves.length) {
@@ -542,6 +544,10 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
 
         if (!this.getSave().characterArtStyle) {
             this.getSave().characterArtStyle = 'original';
+        }
+
+        if (this.getSave().typeOutSpeed === undefined) {
+            this.getSave().typeOutSpeed = this.DEFAULT_TYPE_OUT_SPEED;
         }
 
         // Initialize reserveActors if missing

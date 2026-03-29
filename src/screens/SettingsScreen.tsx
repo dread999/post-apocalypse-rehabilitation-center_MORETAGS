@@ -23,6 +23,7 @@ interface SettingsData {
     disableEmotionImages: boolean;
     disableDecorImages: boolean;
     disableImpersonation: boolean;
+    typeOutSpeed: number;
     characterArtStyle: ArtStyle;
     characterArtist: string;
     tagToggles: { [key: string]: boolean };
@@ -33,6 +34,17 @@ interface SettingsData {
 
 export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onConfirm, isNewGame = false }) => {
     const CUSTOM_TONE_KEY = 'Custom';
+    const minTypeOutSpeed = 0;
+    const maxTypeOutSpeed = 50;
+    const defaultTypeOutSpeed = stage().DEFAULT_TYPE_OUT_SPEED;
+
+    const clampTypeOutSpeed = (value: number) => {
+        if (Number.isNaN(value)) {
+            return defaultTypeOutSpeed;
+        }
+
+        return Math.min(maxTypeOutSpeed, Math.max(minTypeOutSpeed, value));
+    };
 
     // Common languages for autocomplete
     const commonLanguages = [
@@ -139,6 +151,7 @@ export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onCon
         disableEmotionImages: saveFromStage.disableEmotionImages ?? false,
         disableDecorImages: saveFromStage.disableDecorImages ?? saveFromStage.disableEmotionImages ?? false,
         disableImpersonation: saveFromStage.disableImpersonation ?? false,
+        typeOutSpeed: clampTypeOutSpeed(saveFromStage.typeOutSpeed ?? defaultTypeOutSpeed),
         characterArtStyle: saveFromStage.characterArtStyle ?? 'original',
         characterArtist: saveFromStage.characterArtist ?? '',
         language: saveFromStage.language || 'English',
@@ -183,6 +196,7 @@ export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onCon
         save.disableEmotionImages = settings.disableEmotionImages;
         save.disableDecorImages = settings.disableDecorImages;
         save.disableImpersonation = settings.disableImpersonation;
+        save.typeOutSpeed = clampTypeOutSpeed(settings.typeOutSpeed);
         save.characterArtStyle = settings.characterArtStyle;
         save.characterArtist = settings.characterArtist;
         save.language = settings.language;
@@ -764,6 +778,64 @@ export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onCon
                                             Disable Impersonation
                                         </span>
                                     </motion.div>
+
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                        <label
+                                            htmlFor="type-out-speed"
+                                            style={{
+                                                color: 'rgba(255, 255, 255, 0.8)',
+                                                fontSize: '12px',
+                                                fontWeight: 'bold',
+                                            }}
+                                        >
+                                            Type-Out Speed
+                                        </label>
+                                        <div
+                                            style={{
+                                                padding: '12px',
+                                                background: 'rgba(0, 20, 40, 0.7)',
+                                                border: '2px solid rgba(255, 255, 255, 0.1)',
+                                                borderRadius: '8px',
+                                                display: 'flex',
+                                                flexDirection: 'column',
+                                                gap: '10px',
+                                            }}
+                                        >
+                                            <input
+                                                id="type-out-speed"
+                                                type="range"
+                                                min={minTypeOutSpeed}
+                                                max={maxTypeOutSpeed}
+                                                step={1}
+                                                value={settings.typeOutSpeed}
+                                                onChange={(e) => setSettings(prev => ({
+                                                    ...prev,
+                                                    typeOutSpeed: clampTypeOutSpeed(parseInt(e.target.value, 10))
+                                                }))}
+                                                style={{
+                                                    width: '100%',
+                                                    accentColor: '#00ff88',
+                                                    cursor: 'pointer',
+                                                }}
+                                            />
+                                            <div
+                                                style={{
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'space-between',
+                                                    gap: '12px',
+                                                    color: 'rgba(255, 255, 255, 0.75)',
+                                                    fontSize: '12px',
+                                                }}
+                                            >
+                                                <span>Faster</span>
+                                                <span style={{ color: '#00ff88', fontWeight: 'bold' }}>
+                                                    {settings.typeOutSpeed} ms/char
+                                                </span>
+                                                <span>Slower</span>
+                                            </div>
+                                        </div>
+                                    </div>
 
                                     {/* Art Style Dropdown */}
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>

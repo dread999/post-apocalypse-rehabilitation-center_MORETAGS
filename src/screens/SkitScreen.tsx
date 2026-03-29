@@ -351,6 +351,7 @@ const calculateActorXPosition = (actorIndex: number, totalActors: number, anySpe
 
 export const SkitScreen: FC<SkitScreenProps> = ({ stage, setScreenType, isVerticalLayout }) => {
     const { setTooltip, clearTooltip } = useTooltip();
+    const typeOutSpeed = Math.max(1, stage().getSave().typeOutSpeed ?? stage().DEFAULT_TYPE_OUT_SPEED);
     const [index, setIndex] = React.useState<number>(0);
     const [inputText, setInputText] = React.useState<string>('');
     const [sceneEnded, setSceneEnded] = React.useState<boolean>(false);
@@ -1066,7 +1067,7 @@ export const SkitScreen: FC<SkitScreenProps> = ({ stage, setScreenType, isVertic
                             {skit.script && skit.script.length > 0 ? (
                                 <TypeOut
                                     key={messageKey}
-                                    speed={20}
+                                    speed={typeOutSpeed}
                                     finishTyping={finishTyping}
                                     onTypingComplete={() => setFinishTyping(true)}
                                 >
