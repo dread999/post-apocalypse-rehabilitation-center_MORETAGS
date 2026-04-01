@@ -45,6 +45,7 @@ export const ActorDetailScreen: FC<ActorDetailScreenProps> = ({ actor, stage, on
         voiceId: string;
         themeColor: string;
         themeFontFamily: string;
+        locationId: string;
     }>({
         name: actor.name,
         profile: actor.profile,
@@ -53,6 +54,7 @@ export const ActorDetailScreen: FC<ActorDetailScreenProps> = ({ actor, stage, on
         voiceId: actor.voiceId,
         themeColor: actor.themeColor,
         themeFontFamily: actor.themeFontFamily,
+        locationId: actor.locationId || '',
     });
     const [editedOutfits, setEditedOutfits] = useState<Outfit[]>(() => getClonedOutfits());
     const [selectedOutfitId, setSelectedOutfitId] = useState<string>(() => {
@@ -127,6 +129,7 @@ export const ActorDetailScreen: FC<ActorDetailScreenProps> = ({ actor, stage, on
         actor.voiceId = editedActor.voiceId;
         actor.themeColor = editedActor.themeColor;
         actor.themeFontFamily = editedActor.themeFontFamily;
+        actor.locationId = editedActor.locationId;
         actor.outfits = nextOutfits.map((outfit) => ({
             ...outfit,
             emotionPack: { ...(outfit.emotionPack || {}) },
@@ -448,6 +451,33 @@ export const ActorDetailScreen: FC<ActorDetailScreenProps> = ({ actor, stage, on
         })),
     ];
 
+    // Get all available locations for the dropdown
+    const getLocationOptions = (): Array<{ value: string; label: string }> => {
+        const save = stage().getSave();
+        const options: Array<{ value: string; label: string }> = [];
+
+        // Add all modules with their names
+        const allModules = save.layout.getModulesWhere((_: any) => true);
+        allModules.forEach((module: any) => {
+            if (module && module.id && module.name) {
+                options.push({ value: module.id, label: `Module: ${module.name}` });
+            }
+        });
+
+        // Add all factions with their names
+        Object.values(save.factions).forEach((faction: any) => {
+            if (faction && faction.id && faction.name) {
+                options.push({ value: faction.id, label: `Faction: ${faction.name}` });
+            }
+        });
+
+        // Add special locations
+        options.push({ value: 'cryo', label: 'Cryo' });
+        options.push({ value: 'dead', label: 'Dead' });
+
+        return options;
+    };
+
     return (
         <AnimatePresence>
             <motion.div
@@ -587,6 +617,43 @@ export const ActorDetailScreen: FC<ActorDetailScreenProps> = ({ actor, stage, on
                                             onChange={(e) => handleInputChange('name', e.target.value)}
                                             placeholder="Character name"
                                         />
+                                    </div>
+
+                                    {/* Location/State */}
+                                    <div>
+                                        <label 
+                                            style={{
+                                                display: 'block',
+                                                color: '#00ff88',
+                                                fontSize: '14px',
+                                                fontWeight: 'bold',
+                                                marginBottom: '8px',
+                                            }}
+                                        >
+                                            Location / State
+                                        </label>
+                                        <select
+                                            value={editedActor.locationId}
+                                            onChange={(e) => handleInputChange('locationId', e.target.value)}
+                                            style={{
+                                                width: '100%',
+                                                padding: '12px',
+                                                fontSize: '14px',
+                                                backgroundColor: 'rgba(0, 20, 40, 0.6)',
+                                                border: '2px solid rgba(0, 255, 136, 0.3)',
+                                                borderRadius: '5px',
+                                                color: '#e0f0ff',
+                                                fontFamily: 'inherit',
+                                                cursor: 'pointer',
+                                            }}
+                                        >
+                                            <option value="">-- Select Location --</option>
+                                            {getLocationOptions().map((option) => (
+                                                <option key={option.value} value={option.value}>
+                                                    {option.label}
+                                                </option>
+                                            ))}
+                                        </select>
                                     </div>
 
                                     {/* Profile/Personality */}

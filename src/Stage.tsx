@@ -313,8 +313,8 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
         for (const actorId in save.actors) {
             const actor = save.actors[actorId];
             try {
-                if (actor.locationId === 'cryo') {
-                    // Cryo patients stay in cryo.
+                if (['cryo', 'dead'].includes(actor.locationId)) {
+                    // Cryo or dead patients don't move.
                     continue;
                 }
                 // Move faction actors to "in" their faction.

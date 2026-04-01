@@ -435,7 +435,7 @@ export function generateSkitPrompt(skit: SkitData, stage: Stage, historyLength: 
     const currentSceneModuleId = getCurrentSceneModuleId(skit, -1);
     const presentActorIds = getCurrentActorsInScene(skit, currentSceneModuleId, -1);
     const presentPatients = Object.values(save.actors).filter(a => presentActorIds.has(a.id) && !a.factionId);
-    const absentPatients = Object.values(save.actors).filter(a => !presentActorIds.has(a.id) && !a.factionId && save.aide.actorId != a.id && a.locationId != 'cryo' && !a.isOffSite(save));
+    const absentPatients = Object.values(save.actors).filter(a => !presentActorIds.has(a.id) && !a.factionId && save.aide.actorId != a.id && !['cryo', 'dead'].includes(a.locationId) && !a.isOffSite(save));
     const cryoPatients = Object.values(save.actors).filter(a => a.locationId === 'cryo' && !a.factionId);
     const awayPatients = Object.values(save.actors).filter(a => !a.factionId && a.isOffSite(save));
 

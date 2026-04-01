@@ -30,7 +30,7 @@ export const CryoScreen: FC<CryoScreenProps> = ({stage, setScreenType, isVertica
 	
 	// Get actors present on the station (locationId is '' or matches a module ID in the layout)
 	const stationActors = Object.values(stage().getSave().actors).filter(actor => {
-		if (actor.locationId === 'cryo') return false;
+		if (['cryo', 'dead'].includes(actor.locationId)) return false;
 		if (actor.origin === 'aide') return false;
 		if (actor.factionId) return false;
 		if (actor.locationId === '') return true;

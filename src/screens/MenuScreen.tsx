@@ -282,7 +282,7 @@ export const MenuScreen: FC<MenuScreenProps> = ({ stage, setScreenType }) => {
                     }}
                 >
                     {stage().isAuthenticated 
-                        ? 'v2026.03.27 - Some prompt improvements and redundant summary generation.'
+                        ? 'v2026.04.01 - Module management tools and ability to manually mark characters as dead.'
                         : (
                             <>
                                 This is an unofficial bot; for the latest version for PARC, visit:{' '}
