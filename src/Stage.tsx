@@ -5,7 +5,7 @@ import Actor, { loadReserveActor, generateBaseActorImage, commitActorToEcho, Sta
 import Faction, { generateFactionModule, generateFactionRepresentative, loadReserveFaction } from "./factions/Faction";
 import { DEFAULT_GRID_WIDTH, DEFAULT_GRID_HEIGHT, Layout, MODULE_TEMPLATES, StationStat, createModule, registerFactionModule, ModuleIntrinsic, generateModule, Module, registerModule } from './Module';
 import { BaseScreen, ScreenType } from "./screens/BaseScreen";
-import { generateSkitScript, SkitData, SkitType, updateCharacterArc } from "./Skit";
+import { generateSkitScript, generateSkitSummary, SkitData, SkitType, updateCharacterArc } from "./Skit";
 import { smartRehydrate } from "./SaveRehydration";
 import { Emotion, EmotionPromptMap, getDefaultEmotionPromptMap } from "./actors/Emotion";
 import { assignActorToRole } from "./utils";
@@ -1149,6 +1149,17 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                         actor.outfitId = newOutfitId;
                     }
                 }
+            }
+
+            // Look at past skits (starting from the beginning), and find one that doesn't have a summary, to generate:
+            const skitToSummarize = (save.timeline || []).find(entry => entry.skit && !entry.skit.summary)?.skit;
+            if (skitToSummarize) {
+                console.log(`Summarizing an old skit.`);
+                generateSkitSummary(skitToSummarize, this).then(summary => {
+                    if (summary) {
+                        this.saveGame();
+                    }
+                });
             }
 
             save.currentSkit = undefined;

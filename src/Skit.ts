@@ -474,7 +474,7 @@ export function generateSkitPrompt(skit: SkitData, stage: Stage, historyLength: 
                 `  ${module.getAttribute('name')} ${module.getAttribute('role') ? `(${module.getAttribute('role')} : ${module.ownerId ? `${save.actors[module.ownerId]?.name || 'Unknown'}` : 'None'})` : ''}`).join('\n')
         ) +
         `\n\n${playerName}'s profile: ${save.player.description}` +
-        (stationAide ? (presentActorIds.has(stationAide.id) ? `\n\nThe holographic StationAide™ ${stationAide.name} is active in the scene. Profile: ${stationAide.profile}` : `\n\nThe holographic StationAide™ ${stationAide.name} remains absent from the scene unless summoned by the Director.`) : '') +
+        (stationAide ? (presentActorIds.has(stationAide.id) ? `\n\nThe holographic StationAide™ ${stationAide.name} is active in the scene. Profile: ${stationAide.profile}` : `\n\nThe holographic StationAide™ ${stationAide.name} remains absent from the scene unless summoned.`) : '') +
         // List non-present characters for reference; just need description and profile:
         `\n\nAbsent Characters (Aboard the PARC But Not Currently in the Scene):\n${absentPatients.map(actor => {
             // Roll name and current location
@@ -491,7 +491,7 @@ export function generateSkitPrompt(skit: SkitData, stage: Stage, historyLength: 
                 `    Profile: ${actor.profile}\n    Role: ${roleModule?.getAttribute('role') || 'Patient'}\n    Location: ${locationString}`;
         }).join('\n')}` +
         // List away characters for reference; just need description and profile:
-        `\n\nOff-Station Characters (On Assignment Away from the PARC):\n${awayPatients.map(actor => {
+        (awayPatients.length > 0 ? `\n\nOff-Station Characters (On Assignment Away from the PARC):\n${awayPatients.map(actor => {
             // Just role name and faction on loan to
             const roleModule = stage.getLayout().getModulesWhere((m: any) => 
                 m && m.type !== 'quarters' && m.ownerId === actor.id
@@ -503,7 +503,7 @@ export function generateSkitPrompt(skit: SkitData, stage: Stage, historyLength: 
             return `  ${actor.name}\n    Current Appearance (${currentOutfit.name}): ${actor.getDescription(currentOutfitId)}\n` +
                 // (otherOutfits.length > 0 ? `    Other Appearances: ${otherOutfits.map(o => o.name).join(', ')}\n` : '') + // Unnecessary for absent characters
                 `    Profile: ${actor.profile}\n    Role: ${roleModule?.getAttribute('role') || 'Patient'}\n    On Assignment to: ${atFaction?.name || 'Unknown Faction'}`;
-        }).join('\n')}` +
+        }).join('\n')}` : '') +
         // List cryo characters for reference; just need description and profile:
         (cryoPatients.length > 0 ? `\n\nCryo Frozen Characters (Absolutely Unavailable):\n${cryoPatients.map(actor => {
             const entranceEvent = stage.getSave().timeline?.find(event => event.skit?.actorId === actor.id && event.skit?.type === SkitType.ENTER_CRYO);
@@ -564,6 +564,25 @@ export function generateSkitPrompt(skit: SkitData, stage: Stage, historyLength: 
 
         `\n\n${instruction}`;
     return fullPrompt;
+}
+
+export async function generateSkitSummary(skit: SkitData, stage: Stage): Promise<string> {
+    const fullPrompt = `Summarize the following scene script in 2-3 sentences, focusing on the most important events and character interactions. The summary should be concise but informative, capturing the essence of the scene without going into excessive detail.\n\nScene Script:\n${buildScriptLog(skit, [], stage)}`;
+    const response = await stage.generator.textGen({
+                prompt: fullPrompt,
+                min_tokens: 10,
+                max_tokens: 500,
+                include_history: true,
+                stop: []
+            });
+    if (!response || !response.result) {
+        console.warn('No response or empty result from generator for skit summary.');
+        return '';
+    } else {
+        console.log(`Generated skit summary: ${response.result.trim()}`);
+        skit.summary = response.result.trim();
+        return skit.summary;
+    }
 }
 
 export async function generateSkitScript(skit: SkitData, stage: Stage): Promise<{ entries: ScriptEntry[]; endScene: boolean; statChanges: { [actorId: string]: { [stat: string]: number } } }> {
