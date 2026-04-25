@@ -585,7 +585,7 @@ export async function generateSkitSummary(skit: SkitData, stage: Stage): Promise
 
         const summaryMatch = /\[SUMMARY:\s*([^\]]+)\]/i.exec(endResponse.result);
         skit.summary = summaryMatch ? summaryMatch[1].trim() : '';
-        console.log('Model determined scene should end. Summary:', skit.summary);
+        console.log('New summary for skit:', skit.summary);
         return skit.summary;
     }
     return '';
