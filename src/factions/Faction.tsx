@@ -85,21 +85,19 @@ export async function loadReserveFaction(fullPath: string, stage: Stage): Promis
     
     // Similar banned word substitutes as Actor
     const bannedWordSubstitutes: {[key: string]: string} = {
-        'underage': 'young adult',
-        'adolescent': 'young adult',
-        'youngster': 'young adult',
-        'teen': 'young adult',
-        'highschooler': 'young adult',
-        'child': 'child',
+        'underage': 'young teen',
+        'adolescent': 'tween',
+        'youngster': 'preteen',
+        'childhood': 'formative years',
+        'childish': 'bratty',
+        'child': 'young person',
+        // Don't bother with these; just set it to the same word so it gets discarded.
         'toddler': 'toddler',
         'infant': 'infant',
         'kid': 'joke',
         'baby': 'honey',
         'minor': 'trivial',
-        'old-school': 'retro',
-        'high school': 'college',
-        'school': 'college'
-    };
+        'old-school': 'retro'};
     
     const data = {
         name: dataName,
