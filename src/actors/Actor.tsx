@@ -331,14 +331,12 @@ export async function loadReserveActor(data: any, stage: Stage): Promise<Actor|n
     // Attempt to substitute words to avert bad content into something more agreeable (if the distillation still has these, then drop the card).
     const bannedWordSubstitutes: {[key: string]: string} = {
         // Try to age up some terms in the hopes that the character can be salvaged.
-        'underage': 'young adult',
-        'adolescent': 'young adult',
-        'youngster': 'young adult',
-        'teen': 'young adult',
-        'highschooler': 'young adult',
+        'underage': 'young teen',
+        'adolescent': 'tween',
+        'youngster': 'preteen',
         'childhood': 'formative years',
         'childish': 'bratty',
-        'child': 'young adult',
+        'child': 'young person',
         // Don't bother with these; just set it to the same word so it gets discarded.
         'toddler': 'toddler',
         'infant': 'infant',
@@ -346,9 +344,7 @@ export async function loadReserveActor(data: any, stage: Stage): Promise<Actor|n
         'kid': 'joke',
         'baby': 'honey',
         'minor': 'trivial',
-        'old-school': 'retro',
-        'high school': 'college',
-        'school': 'college'};
+        'old-school': 'retro'};
 
 
     // Preserve content while removing JSON-like structures.
