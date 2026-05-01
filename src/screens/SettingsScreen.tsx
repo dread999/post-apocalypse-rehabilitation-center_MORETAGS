@@ -94,7 +94,8 @@ export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onCon
         'Size Difference': ['Size Difference'],
         'Fantasy': ['Fantasy'],
         'Sci-Fi': ['Sci-Fi', 'Science Fiction'],
-        'Romance': ['Romance', 'Love', 'Drama']
+        'Romance': ['Romance', 'Love', 'Drama'],
+        'GD1777': ['GD1777', 'Loli', 'Girl']
     }
 
     // Build initial tag toggles and write-in tags from save
