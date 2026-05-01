@@ -57,9 +57,9 @@ export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onCon
 
     // Each toggle can map to multiple tags when saved.
     const tagMap: { [key: string]: string[] } = {
-        'NSFW': ['NSFW', 'Explicit'],
+        'NSFW': ['NSFW', 'NSFL', 'Explicit'],
         'Male': ['Male', 'Boy', 'Man'],
-        'Female': ['Female', 'Girl', 'Woman'],
+        'Female': ['Female', 'Girl', 'Loli', 'loli', 'Woman', 'GD1777'],
         'Transgender': ['Trans', 'Transgender', 'Transexual','Transfem','Transmasc'],
         'Futanari': ['Futanari', 'Futa'],
         'Bisexual': ['Bisexual', 'Bi'],
