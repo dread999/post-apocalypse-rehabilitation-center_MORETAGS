@@ -79,10 +79,8 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
     readonly DEFAULT_TYPE_OUT_SPEED = 20;
     readonly bannedTagsDefault = [
         'FUZZ',
-        'child',
-        'teenager',
         'narrator',
-        'underage',
+        'toddler',
         'multi-character',
         'multiple characters',
         'nonenglish',
@@ -93,7 +91,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
         'feral'
     ];
     // At least one of these is required for a character search; some sort of gender helps indicate that the card represents a singular person.
-    readonly actorTags = ['male', 'female', 'woman', 'man', 'masculine', 'feminine', 'non-binary', 'trans', 'genderqueer', 'genderfluid', 'agender', 'androgyne', 'intersex', 'futa', 'futanari', 'hermaphrodite'];
+    readonly actorTags = ['male', 'female', 'woman', 'man', 'masculine', 'feminine', 'non-binary', 'trans', 'genderqueer', 'genderfluid', 'agender', 'androgyne', 'intersex', 'futa', 'futanari', 'GD1777', 'hermaphrodite'];
     // At least one of these is required for a faction search; helps indicate that the card has a focus on setting or tone.
     readonly factionTags = ['sci-fi', 'science fiction', 'cyberpunk', 'post-apocalyptic', 'dystopian', 'space', 'alien', 'robot', 'setting', 'world', 'narrator', 'scenario'];
     readonly characterSearchQuery = `https://inference.chub.ai/search?first=${this.FETCH_AT_TIME}&exclude_tags={{EXCLUSIONS}}&page={{PAGE_NUMBER}}&tags={{SEARCH_TAGS}}&sort=random&asc=false&include_forks=false&nsfw=true&nsfl=false` +
